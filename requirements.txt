@@ -1,1 +1,11 @@
-pip install pyttsx3
+openai
+pyttsx3
+pyaudio
+pvporcupine
+numpy
+whisper
+
+
+# local whisper
+  # torch
+  # torchaudio

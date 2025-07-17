@@ -26,7 +26,10 @@ COMMANDS = {
     "set_timer": ["set a timer", "start a timer", "timer for"],
     "add_shopping": ["add to shopping list", "add to list", "shopping list"],
     "show_shopping": ["show shopping list", "what's on my shopping list", "read shopping list"],
-    "clear_shopping": ["clear shopping list", "empty shopping list"]
+    "clear_shopping": ["clear shopping list", "empty shopping list"],
+    "power_search": ["what can i cook with", "what should i cook with", "recipes with", "show recipes with"],
+    "exit": ["exit", "quit", "goodbye", "close program"],
+    "pause": ["pause", "wait", "hold on"]
 }
 
 def parse_intent(user_text):

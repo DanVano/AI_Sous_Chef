@@ -1,15 +1,44 @@
 import time
-from ai.intent_parser import parse_intent, extract_timer_seconds
+from ai.intent_parser import parse_intent
 from ai.chatgpt_api import get_chatgpt_response
-from storage.persistent_storage import save_user_profile, load_user_profile, save_favorite, load_favorites, save_last_recipe, load_last_recipe
+from storage.persistent_storage import (
+    save_user_profile, load_user_profile, save_favorite, load_favorites,
+    save_last_recipe, load_last_recipe
+)
 from voice.tts import speak
 from voice.whisper_stt import transcribe_audio
 from voice.wake_word import listen_for_wake_word, record_audio
 from storage.session_storage import save_session_transcription
 from recipes.recipe_manager import filter_recipes, get_recipe_by_name, substitute_ingredient
 from recipes.substitutions import get_substitutes
-from utils.timer import set_timer
-from storage.shopping_list import add_to_shopping_list, get_shopping_list, clear_shopping_list
+from utils.timer import set_timer, extract_timer_seconds
+from storage.shopping_list import (
+    add_to_shopping_list, get_shopping_list, clear_shopping_list
+)
+from utils.logger import log_event
+
+def extract_substitute_ingredients(text):
+    text = text.lower()
+    if "substitute" in text:
+        after = text.split("substitute")[1].strip()
+        if "with" in after:
+            old, new = after.split("with")
+            return old.strip(), new.strip()
+        return after.strip(), None  # Only 'substitute eggs'
+    return None, None
+
+def extract_rating(text):
+    for word in text.split():
+        if word.isdigit() and 1 <= int(word) <= 5:
+            return int(word)
+    return None
+
+def is_unclear(text):
+    if not text or len(text.strip()) < 3:
+        return "unclear"
+    if len(text.split()) < 2:
+        return "repeat"
+    return None
 
 def ask_and_save_user_settings():
     profile = load_user_profile()
@@ -18,13 +47,10 @@ def ask_and_save_user_settings():
     diet = input("Are you vegan, vegetarian, or meat eater? (choose one): ")
     restrictions = input("Do you have any dietary restrictions like gluten-free, keto, nut-free, etc? (comma separated, or none): ")
     skill = input("How would you rank your cooking skill? (eggs only, beginner, intermediate, confident homecook, great homecook): ")
-
     if diet.lower() == "meat eater":
         meats = input("What types of meat do you eat? (comma separated): ")
         profile["meats"] = [m.strip() for m in meats.split(",")]
-
     cuisines = input("What cuisines do you like? (comma separated): ")
-
     profile["allergies"] = [a.strip() for a in allergies.split(",") if a.strip()]
     profile["diet"] = diet.lower()
     profile["restrictions"] = [r.strip() for r in restrictions.split(",") if r.strip()]
@@ -35,8 +61,8 @@ def ask_and_save_user_settings():
 
 def main_menu():
     options = (
-        "Main Menu: Say or select - Find a recipe, Start a recipe, "
-        "User settings, Show my favorites, Last recipe I made, Help"
+        "Main Menu: Say or select - Find a recipe, Start a recipe, Power search, "
+        "User settings, Show my favorites, Last recipe I made, Shopping list, Help, Exit, Pause"
     )
     speak(options)
     print(options)
@@ -46,15 +72,13 @@ def listen_for_ingredients():
     audio_path = "ingredients.wav"
     record_audio(audio_path, record_seconds=7)
     user_text = transcribe_audio(audio_path)
-    print(f"Ingredients heard: {user_text}")
+    log_event("input", f"Find recipe ingredients: {user_text}")
     save_session_transcription(user_text)
-    # Split by 'and' or ',' for more natural phrasing
     user_text = user_text.replace(" and ", ", ")
     ingredients_list = [i.strip() for i in user_text.split(",") if i.strip()]
     return ingredients_list
 
 def handle_find_recipe(profile):
-    # No need to prompt, just listen for ingredients after intent detected
     ingredients_list = listen_for_ingredients()
     options = filter_recipes(ingredients_list, profile)
     if not options:
@@ -66,12 +90,11 @@ def handle_find_recipe(profile):
     print("Options: ")
     for idx, recipe in enumerate(options, 1):
         print(f"{idx}: {recipe['name']}")
-    # Listen for user choice
     speak("Which recipe do you want to start? Please say the name or number.")
     audio_path = "recipe_choice.wav"
     record_audio(audio_path, record_seconds=4)
     selection = transcribe_audio(audio_path)
-    print(f"Recipe choice heard: {selection}")
+    log_event("input", f"Recipe choice: {selection}")
     chosen = None
     try:
         idx = int(selection)
@@ -89,44 +112,40 @@ def handle_find_recipe(profile):
     else:
         speak("Recipe selection error.")
 
-def is_unclear(text):
-    # Too short or silence
-    if not text or len(text.strip()) < 3:
-        return "unclear"
-    # Heuristic: very few words
-    if len(text.split()) < 2:
-        return "repeat"
-    # If text is mostly garbage (not matching any known command)
-    return None
-
-# In your main while loop, after transcribe_audio:
-uncertainty = is_unclear(user_text)
-if uncertainty == "unclear":
-    speak("Sorry, I didn't catch that. Please repeat your command.")
-    continue
-elif uncertainty == "repeat":
-    speak("Could you say that again, more clearly?")
-    continue
-
-# ...then proceed to parse_intent and handle as normal...
-
-# If parse_intent returns 'unknown' and your transcription is plausible:
-if command == "unknown":
-    speak("I'm not sure what you meant. Can you rephrase or clarify?")
-    # Listen again
-    audio_path = "clarify_cmd.wav"
-    record_audio(audio_path, record_seconds=3)
-    clarify_text = transcribe_audio(audio_path)
-    # Try again:
-    command = parse_intent(clarify_text)
-    if command == "unknown":
-        # Use ChatGPT as fallback
-        speak("Let me see if AI can help.")
-        ai_response = get_chatgpt_response(clarify_text)
-        speak(ai_response)
-        continue
-    else:
-        user_text = clarify_text  # Continue as usual with new text
+def handle_power_search(profile):
+    speak("Tell me the main ingredients you have. Please say them separated by and or commas.")
+    audio_path = "power_search_ingredients.wav"
+    record_audio(audio_path, record_seconds=7)
+    user_text = transcribe_audio(audio_path)
+    log_event("input", f"Power search ingredients: {user_text}")
+    if not user_text or len(user_text.split()) < 2:
+        speak("I didn't catch enough ingredients. Please try again.")
+        return
+    user_text = user_text.replace(" and ", ", ")
+    ingredients_list = [i.strip() for i in user_text.split(",") if i.strip()]
+    options = filter_recipes(ingredients_list, profile)
+    if not options or len(options) < 3:
+        restrictions = f"Allergies: {', '.join(profile.get('allergies', []))}. " \
+                       f"Diet: {profile.get('diet', 'None')}. " \
+                       f"Restrictions: {', '.join(profile.get('restrictions', []))}. " \
+                       f"Skill level: {profile.get('skill', 'unknown')}."
+        gpt_prompt = (
+            f"User has the following main ingredients: {', '.join(ingredients_list)}. "
+            f"{restrictions} Suggest 3 popular home-cooking recipes they can make, even if not all ingredients match. "
+            "Return only the recipe name and a one-line description for each, in this format: "
+            "1. Recipe Name: Description."
+        )
+        chatgpt_results = get_chatgpt_response(gpt_prompt)
+        log_event("ai", f"ChatGPT power search: {gpt_prompt}\nResponse: {chatgpt_results}")
+        speak("Here are some recipes I found:")
+        for line in chatgpt_results.split("\n"):
+            if line.strip():
+                speak(line.strip())
+        return
+    speak("Here are some recipes you can try:")
+    for idx, recipe in enumerate(options[:3], 1):
+        speak(f"{idx}. {recipe['name']}")
+        log_event("output", f"Local recipe option: {recipe['name']}")
 
 def session_recipe_navigation(recipe):
     steps = recipe["steps"]
@@ -137,37 +156,37 @@ def session_recipe_navigation(recipe):
         record_audio(audio_path, record_seconds=3)
         user_text = transcribe_audio(audio_path)
         print(f"Step command heard: {user_text}")
-
+        log_event("input", f"Step command: {user_text}")
         uncertainty = is_unclear(user_text)
         if uncertainty == "unclear":
             speak("Sorry, I didn't catch that. Please repeat your command.")
+            log_event("error", "Unclear input in recipe navigation")
             continue
         elif uncertainty == "repeat":
             speak("Could you say that again, more clearly?")
+            log_event("error", "Short input in recipe navigation")
             continue
-
         command = parse_intent(user_text)
-
-        # Clarification & fallback
         if command == "unknown":
             speak("I'm not sure what you meant. Can you rephrase or clarify?")
             audio_path = "clarify_cmd.wav"
             record_audio(audio_path, record_seconds=3)
             clarify_text = transcribe_audio(audio_path)
             print(f"Clarify command heard: {clarify_text}")
+            log_event("input", f"Clarify command: {clarify_text}")
             if is_unclear(clarify_text):
-                # If still unclear, try Whisper API fallback (just re-transcribe) or skip
                 speak("Sorry, I still didn't catch that. Please try again.")
+                log_event("error", "Still unclear after clarify")
                 continue
             command = parse_intent(clarify_text)
             if command == "unknown":
                 speak("Let me see if AI can help.")
                 ai_response = get_chatgpt_response(clarify_text)
                 speak(ai_response)
+                log_event("ai", f"Fallback AI used: {clarify_text} -> {ai_response}")
                 continue
             else:
                 user_text = clarify_text
-
         if command == "next_step":
             if current < len(steps) - 1:
                 current += 1
@@ -254,32 +273,33 @@ def session_recipe_navigation(recipe):
         elif command == "clear_shopping":
             clear_shopping_list()
             speak("Shopping list cleared.")
+        elif command == "exit":
+            speak("Exiting the recipe. Goodbye!")
+            log_event("system", "User exited recipe session.")
+            exit()
+        elif command == "pause":
+            speak("Pausing. Say resume or continue when you are ready.")
+            log_event("system", "User paused recipe session.")
+            while True:
+                audio_path = "pause_cmd.wav"
+                record_audio(audio_path, record_seconds=3)
+                pause_cmd = transcribe_audio(audio_path)
+                if pause_cmd and ("resume" in pause_cmd.lower() or "continue" in pause_cmd.lower()):
+                    speak("Resuming.")
+                    log_event("system", "User resumed recipe session.")
+                    break
+                else:
+                    speak("Still paused. Say resume or continue when ready.")
         else:
             speak("Command not recognized.")
-
-def extract_substitute_ingredients(text):
-    text = text.lower()
-    if "substitute" in text:
-        after = text.split("substitute")[1].strip()
-        if "with" in after:
-            old, new = after.split("with")
-            return old.strip(), new.strip()
-        return after.strip(), None  # Only 'substitute eggs'
-    return None, None
-
-def extract_rating(text):
-    for word in text.split():
-        if word.isdigit() and 1 <= int(word) <= 5:
-            return int(word)
-    return None
-
-
+            log_event("error", f"Command not recognized: {user_text}")
 
 def handle_start_recipe():
     speak("What recipe do you want to cook?")
     audio_path = "start_recipe.wav"
     record_audio(audio_path, record_seconds=4)
     recipe_name = transcribe_audio(audio_path)
+    log_event("input", f"Start recipe: {recipe_name}")
     recipe = get_recipe_by_name(recipe_name)
     if recipe:
         speak(f"Let's start {recipe['name']}. Say 'next step' to begin.")
@@ -308,6 +328,15 @@ def handle_last_recipe():
     else:
         speak("No recent recipe found.")
 
+def handle_shopping_list():
+    lst = get_shopping_list()
+    if lst:
+        speak("Your shopping list items are:")
+        for x in lst:
+            speak(x)
+    else:
+        speak("Your shopping list is empty.")
+
 def main():
     print("App started. Say 'Hey Chef' to begin...")
     profile = load_user_profile()
@@ -319,32 +348,53 @@ def main():
             first_run = False
         else:
             main_menu()
-
         if listen_for_wake_word():
             speak("Ready!")
             audio_path = "main_cmd.wav"
             record_audio(audio_path, record_seconds=4)
             user_text = transcribe_audio(audio_path)
-            print(f"Command heard: {user_text}")
+            log_event("input", f"Main menu command: {user_text}")
             save_session_transcription(user_text)
-
             command = parse_intent(user_text)
             print(f"Intent: {command}")
-
             if command == "main_menu":
                 main_menu()
             elif command == "find_recipe":
                 handle_find_recipe(profile)
+            elif command == "power_search":
+                handle_power_search(profile)
             elif command == "start_recipe":
                 handle_start_recipe()
             elif command == "user_settings":
                 ask_and_save_user_settings()
             elif command == "help":
-                speak("Commands: Main Menu, Find Recipe, Start Recipe, User Settings, Show my favorites, Last recipe I made, Help, Next Step, Previous Step, Repeat Step, Substitute ingredient, Favorite, Rate.")
+                speak("Commands: Main Menu, Find Recipe, Start Recipe, Power Search, User Settings, Show my favorites, Last recipe I made, Shopping list, Help, Next Step, Previous Step, Repeat Step, Substitute ingredient, Favorite, Rate, Exit, Pause.")
             elif command == "favorite":
                 handle_show_favorites()
             elif command == "last_recipe":
                 handle_last_recipe()
+            elif command == "show_shopping":
+                handle_shopping_list()
+            elif command == "clear_shopping":
+                clear_shopping_list()
+                speak("Shopping list cleared.")
+            elif command == "exit":
+                speak("Goodbye!")
+                log_event("system", "User exited main menu.")
+                break
+            elif command == "pause":
+                speak("Pausing. Say resume or continue when you are ready.")
+                log_event("system", "User paused at main menu.")
+                while True:
+                    audio_path = "pause_cmd.wav"
+                    record_audio(audio_path, record_seconds=3)
+                    pause_cmd = transcribe_audio(audio_path)
+                    if pause_cmd and ("resume" in pause_cmd.lower() or "continue" in pause_cmd.lower()):
+                        speak("Resuming.")
+                        log_event("system", "User resumed from main menu pause.")
+                        break
+                    else:
+                        speak("Still paused. Say resume or continue when ready.")
             elif command in ("next_step", "previous_step", "repeat_step"):
                 speak(f"{command.replace('_', ' ').capitalize()} command not implemented here.")
             elif command == "unknown":
@@ -352,12 +402,13 @@ def main():
                     speak("Let me think about that...")
                     ai_response = get_chatgpt_response(user_text)
                     speak(ai_response)
+                    log_event("ai", f"Main menu fallback AI: {user_text} -> {ai_response}")
                 else:
                     speak("Selection error. Please try again.")
+                    log_event("error", "Selection error at main menu")
             else:
                 speak("Selection error. Please try again.")
-
-            print("Say 'Hey Chef' to begin again, or Ctrl+C to quit.")
+                log_event("error", f"Selection error: {user_text}")
 
 if __name__ == "__main__":
     main()
