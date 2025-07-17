@@ -99,5 +99,5 @@ For ChatGPT access, place your OpenAI API key in a file as instructed in ai/chat
 Project Status
 
 Alpha Release:
-Actively developed. Feedback welcome!
+Actively developed for Windows, will switch to Android once base is built. Feedback welcome!
 Expect rapid feature additions and possible breaking changes.
