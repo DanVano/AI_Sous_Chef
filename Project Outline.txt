@@ -31,3 +31,5 @@ Process Example: Step-by-Step
         Final recipe + user feedback/preferences → persistent_storage.py and user_data.py.
 
         Temp session files deleted.
+
+and thats all
