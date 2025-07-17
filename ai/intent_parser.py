@@ -18,6 +18,15 @@ COMMANDS = {
     "rate": ["rate", "stars"],
     "last_recipe": ["last recipe", "recent recipe", "resume last", "continue last"],
     "show_favorites": ["show my favorites", "favorites", "list favorites"],
+    "list_ingredients": ["list ingredients", "what are the ingredients", "ingredients"],
+    "list_all_steps": ["repeat all steps", "list all steps", "read all steps"],
+    "current_step": ["what step am i on", "current step", "step number"],
+    "total_steps": ["how many steps", "number of steps"],
+    "describe_step": ["describe this step", "explain this step", "more detail"],
+    "set_timer": ["set a timer", "start a timer", "timer for"],
+    "add_shopping": ["add to shopping list", "add to list", "shopping list"],
+    "show_shopping": ["show shopping list", "what's on my shopping list", "read shopping list"],
+    "clear_shopping": ["clear shopping list", "empty shopping list"]
 }
 
 def parse_intent(user_text):

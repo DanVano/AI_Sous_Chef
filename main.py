@@ -1,5 +1,5 @@
 import time
-from ai.intent_parser import parse_intent
+from ai.intent_parser import parse_intent, extract_timer_seconds
 from ai.chatgpt_api import get_chatgpt_response
 from storage.persistent_storage import save_user_profile, load_user_profile, save_favorite, load_favorites, save_last_recipe, load_last_recipe
 from voice.tts import speak
@@ -8,6 +8,8 @@ from voice.wake_word import listen_for_wake_word, record_audio
 from storage.session_storage import save_session_transcription
 from recipes.recipe_manager import filter_recipes, get_recipe_by_name, substitute_ingredient
 from recipes.substitutions import get_substitutes
+from utils.timer import set_timer
+from storage.shopping_list import add_to_shopping_list, get_shopping_list, clear_shopping_list
 
 def ask_and_save_user_settings():
     profile = load_user_profile()
@@ -87,6 +89,45 @@ def handle_find_recipe(profile):
     else:
         speak("Recipe selection error.")
 
+def is_unclear(text):
+    # Too short or silence
+    if not text or len(text.strip()) < 3:
+        return "unclear"
+    # Heuristic: very few words
+    if len(text.split()) < 2:
+        return "repeat"
+    # If text is mostly garbage (not matching any known command)
+    return None
+
+# In your main while loop, after transcribe_audio:
+uncertainty = is_unclear(user_text)
+if uncertainty == "unclear":
+    speak("Sorry, I didn't catch that. Please repeat your command.")
+    continue
+elif uncertainty == "repeat":
+    speak("Could you say that again, more clearly?")
+    continue
+
+# ...then proceed to parse_intent and handle as normal...
+
+# If parse_intent returns 'unknown' and your transcription is plausible:
+if command == "unknown":
+    speak("I'm not sure what you meant. Can you rephrase or clarify?")
+    # Listen again
+    audio_path = "clarify_cmd.wav"
+    record_audio(audio_path, record_seconds=3)
+    clarify_text = transcribe_audio(audio_path)
+    # Try again:
+    command = parse_intent(clarify_text)
+    if command == "unknown":
+        # Use ChatGPT as fallback
+        speak("Let me see if AI can help.")
+        ai_response = get_chatgpt_response(clarify_text)
+        speak(ai_response)
+        continue
+    else:
+        user_text = clarify_text  # Continue as usual with new text
+
 def session_recipe_navigation(recipe):
     steps = recipe["steps"]
     current = 0
@@ -96,7 +137,36 @@ def session_recipe_navigation(recipe):
         record_audio(audio_path, record_seconds=3)
         user_text = transcribe_audio(audio_path)
         print(f"Step command heard: {user_text}")
+
+        uncertainty = is_unclear(user_text)
+        if uncertainty == "unclear":
+            speak("Sorry, I didn't catch that. Please repeat your command.")
+            continue
+        elif uncertainty == "repeat":
+            speak("Could you say that again, more clearly?")
+            continue
+
         command = parse_intent(user_text)
+
+        # Clarification & fallback
+        if command == "unknown":
+            speak("I'm not sure what you meant. Can you rephrase or clarify?")
+            audio_path = "clarify_cmd.wav"
+            record_audio(audio_path, record_seconds=3)
+            clarify_text = transcribe_audio(audio_path)
+            print(f"Clarify command heard: {clarify_text}")
+            if is_unclear(clarify_text):
+                # If still unclear, try Whisper API fallback (just re-transcribe) or skip
+                speak("Sorry, I still didn't catch that. Please try again.")
+                continue
+            command = parse_intent(clarify_text)
+            if command == "unknown":
+                speak("Let me see if AI can help.")
+                ai_response = get_chatgpt_response(clarify_text)
+                speak(ai_response)
+                continue
+            else:
+                user_text = clarify_text
 
         if command == "next_step":
             if current < len(steps) - 1:
@@ -113,22 +183,24 @@ def session_recipe_navigation(recipe):
         elif command == "substitute":
             old, new = extract_substitute_ingredients(user_text)
             if old and not new:
-                # Only "substitute [ingredient]"
                 subs = get_substitutes(old)
                 if subs:
                     speak(f"Possible substitutes for {old} are: {', '.join(subs)}.")
                 else:
                     speak(f"No local substitute for {old}. Asking AI for ideas.")
-                    suggestion = get_chatgpt_response(f"What is a good substitute for {old} in {recipe['name']}?")
+                    suggestion = get_chatgpt_response(
+                        f"What is a good substitute for {old} in {recipe['name']}?"
+                    )
                     speak(suggestion)
             elif old and new:
                 if old.lower() in [i.lower() for i in recipe["ingredients"]]:
-                    # Apply local substitution
                     recipe = substitute_ingredient(recipe, old, new)
                     speak(f"Substituted {old} with {new}.")
                 else:
                     speak(f"No local substitution for {old}. Asking AI for ideas.")
-                    suggestion = get_chatgpt_response(f"What is a good substitute for {old} in {recipe['name']}?")
+                    suggestion = get_chatgpt_response(
+                        f"What is a good substitute for {old} in {recipe['name']}?"
+                    )
                     speak(suggestion)
             else:
                 speak("Sorry, I couldn't understand which ingredient to substitute.")
@@ -144,6 +216,44 @@ def session_recipe_navigation(recipe):
                 speak(f"Recipe rated {rating} stars and saved.")
             else:
                 speak("Please say a rating from one to five stars.")
+        elif command == "list_ingredients":
+            speak("The ingredients for this recipe are:")
+            speak(", ".join(recipe["ingredients"]))
+        elif command == "list_all_steps":
+            for i, step in enumerate(recipe["steps"], 1):
+                speak(f"Step {i}: {step}")
+        elif command == "current_step":
+            speak(f"You are on step {current + 1}.")
+        elif command == "total_steps":
+            speak(f"This recipe has {len(steps)} steps.")
+        elif command == "describe_step":
+            speak(steps[current])
+        elif command == "set_timer":
+            seconds = extract_timer_seconds(user_text)
+            if seconds:
+                set_timer(seconds)
+            else:
+                speak("I didn't understand the timer length. Please say, for example, 'set a timer for 5 minutes'.")
+        elif command == "add_shopping":
+            item = user_text.replace("add to shopping list", "").replace("add to list", "").strip()
+            if not item:
+                speak("What would you like to add to your shopping list?")
+                audio_path = "add_shopping.wav"
+                record_audio(audio_path, record_seconds=3)
+                item = transcribe_audio(audio_path)
+            add_to_shopping_list(item)
+            speak(f"{item} added to your shopping list.")
+        elif command == "show_shopping":
+            lst = get_shopping_list()
+            if lst:
+                speak("Your shopping list items are:")
+                for x in lst:
+                    speak(x)
+            else:
+                speak("Your shopping list is empty.")
+        elif command == "clear_shopping":
+            clear_shopping_list()
+            speak("Shopping list cleared.")
         else:
             speak("Command not recognized.")
 
@@ -162,6 +272,8 @@ def extract_rating(text):
         if word.isdigit() and 1 <= int(word) <= 5:
             return int(word)
     return None
+
+
 
 def handle_start_recipe():
     speak("What recipe do you want to cook?")
