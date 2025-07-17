@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Chicken Parmesan",
+    "ingredients": ["chicken breast", "parmesan", "tomato sauce", "mozzarella", "bread crumbs"],
+    "steps": [
+      "Preheat the oven to 400 F.",
+      "Coat chicken in bread crumbs.",
+      "Brown chicken in a pan.",
+      "Top with sauce and cheese.",
+      "Bake for 20 minutes."
+    ],
+    "tags": ["meat", "italian", "dinner"]
+  },
+  {
+    "name": "Veggie Stir Fry",
+    "ingredients": ["broccoli", "carrot", "bell pepper", "soy sauce", "tofu", "rice"],
+    "steps": [
+      "Chop all vegetables.",
+      "Heat oil in a pan.",
+      "Add tofu and brown.",
+      "Add vegetables and stir fry.",
+      "Add soy sauce and serve with rice."
+    ],
+    "tags": ["vegetarian", "vegan", "asian", "gluten-free"]
+  },
+  {
+    "name": "Scrambled Eggs",
+    "ingredients": ["eggs", "milk", "butter", "salt", "pepper"],
+    "steps": [
+      "Beat eggs with milk.",
+      "Heat butter in a pan.",
+      "Add eggs and cook, stirring.",
+      "Season and serve."
+    ],
+    "tags": ["breakfast", "easy"]
+  }
+]
