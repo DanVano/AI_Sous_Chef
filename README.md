@@ -1,4 +1,4 @@
-AI Chef (Alpha)
+AI Sous Chef (Alpha)
 
 A voice-controlled Python cooking assistant that recommends, navigates, and reads recipes—all hands-free.
 Status

@@ -14,6 +14,10 @@ COMMANDS = {
     "previous_step": ["back a step", "previous step", "go back"],
     "repeat_step": ["repeat step", "say step again", "repeat"],
     "substitute": ["substitute", "replace"],
+    "favorite": ["favorite", "save to favorites"],
+    "rate": ["rate", "stars"],
+    "last_recipe": ["last recipe", "recent recipe", "resume last", "continue last"],
+    "show_favorites": ["show my favorites", "favorites", "list favorites"],
 }
 
 def parse_intent(user_text):
