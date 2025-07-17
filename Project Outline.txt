@@ -1,0 +1,33 @@
+Process Example: Step-by-Step
+
+    User Speaks (“I have chicken, broccoli, and rice”)
+
+        recorder.py → Save audio.
+
+        whisper_stt.py → Transcribe to “I have chicken, broccoli, and rice.”
+
+        intent_parser.py → Detect as ingredients input.
+
+        chatgpt_api.py → Ask ChatGPT for recipe suggestions using those ingredients.
+
+        Recipes shown/read aloud.
+
+    User Picks Recipe
+
+        Recipe is loaded and split into steps via recipe_manager.py.
+
+        Steps stored in session_storage.py.
+
+    Cooking Session Begins
+
+        User says “next step.”
+
+        intent_parser.py recognizes and updates session_storage.py's current step.
+
+        tts.py reads out the next step.
+
+    Session Ends
+
+        Final recipe + user feedback/preferences → persistent_storage.py and user_data.py.
+
+        Temp session files deleted.
