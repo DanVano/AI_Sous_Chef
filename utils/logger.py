@@ -1,7 +1,7 @@
 import datetime
 import os
 
-LOG_FILE = "logs/aichef_log.txt"
+LOG_FILE = os.path.join("logs", "aichef_log.txt")
 
 def log_event(event_type, message):
     os.makedirs("logs", exist_ok=True)

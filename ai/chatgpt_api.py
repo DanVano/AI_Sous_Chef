@@ -10,7 +10,8 @@ from openai.error import OpenAIError
 logging.basicConfig(level=logging.INFO)
 
 def get_chatgpt_response(question):
-    with open("key.txt", "r") as file:
+    key_path = os.path.join("config", "key.txt")
+    with open(key_path, "r") as file:
         openai.api_key = file.read().strip()
 
     messages = [

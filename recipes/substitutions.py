@@ -1,7 +1,7 @@
 import json
 import os
 
-SUB_FILE = "recipes/substitutions.json"
+SUB_FILE = os.path.join("recipes", "substitutions.json")
 
 def load_substitutions():
     if not os.path.exists(SUB_FILE):

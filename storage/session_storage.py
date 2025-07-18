@@ -4,7 +4,7 @@
 
 
 def save_session_transcription(transcription, session_id="current_session"):
-    filename = f"storage/{session_id}_transcription.txt"
+    filename = os.path.join("storage", f"{session_id}_transcription.txt")
     with open(filename, "w", encoding="utf-8") as f:
         f.write(transcription)
 

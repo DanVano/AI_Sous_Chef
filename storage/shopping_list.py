@@ -1,7 +1,7 @@
 import json
 import os
 
-SHOPPING_LIST_FILE = "storage/shopping_list.json"
+SHOPPING_LIST_FILE = os.path.join("storage", "shopping_list.json")
 
 def load_shopping_list():
     if not os.path.exists(SHOPPING_LIST_FILE):

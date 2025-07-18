@@ -5,7 +5,7 @@
 import json
 import os
 
-RECIPE_FILE = "recipes/recipes.json"
+RECIPE_FILE = os.path.join("recipes", "recipes.json")
 
 def load_recipes():
     if not os.path.exists(RECIPE_FILE):

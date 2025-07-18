@@ -6,9 +6,10 @@
 import json
 import os
 
-PROFILE_FILE = "storage/user_profile.json"
-FAV_FILE = "storage/favorites.json"
-LAST_RECIPE_FILE = "storage/last_recipe.json"
+STORAGE_DIR = os.path.join(os.path.dirname(__file__), "..", "storage")
+PROFILE_FILE = os.path.join(STORAGE_DIR, "user_profile.json")
+FAV_FILE = os.path.join(STORAGE_DIR, "favorites.json")
+LAST_RECIPE_FILE = os.path.join(STORAGE_DIR, "last_recipe.json")
 
 def save_user_profile(profile):
     with open(PROFILE_FILE, "w", encoding="utf-8") as f:
