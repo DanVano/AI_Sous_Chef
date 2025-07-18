@@ -23,27 +23,29 @@ It provides:
 
     NOTE: This tool is in ALPHA. Expect bugs and limited features. Test with caution!
 
-Folder Organization
-
 /AI_Chef/
 │
-├── main.py
-├── ai/
+├── main.py                  # Main entry point
+│
+├── ai/                      # AI and NLP logic
 │   ├── chatgpt_api.py
 │   └── intent_parser.py
-├── voice/
+│
+├── voice/                   # Voice features (TTS, STT, wake word)
 │   ├── tts.py
 │   ├── wake_word.py
 │   └── whisper_stt.py
-├── recipes/
+│
+├── recipes/                 # Recipes and manager
 │   ├── recipes.json
 │   └── recipe_manager.py
-├── storage/
+│
+├── storage/                 # Storage modules
 │   ├── persistent_storage.py
 │   └── session_storage.py
-├── requirements.txt
-└── README.md
-
+│
+├── requirements.txt         # Dependencies
+├── README.md                # Project documentation
 How to Use
 
     Install Dependencies:
