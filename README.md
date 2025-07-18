@@ -1,103 +1,110 @@
-AI Sous Chef (Alpha)
+# AI Sous Chef (Alpha)
+**A voice-controlled Python cooking assistant that recommends, navigates, and reads recipes—all hands-free**
 
-A voice-controlled Python cooking assistant that recommends, navigates, and reads recipes—all hands-free.
-Status
+---
 
-Alpha Release (active development)
-Python Version: 3.8+
-About
+## Status
+**Alpha Release** (active development)  
+**Python Version:** 3.8+
 
-AI Chef is a smart, modular voice assistant that helps you plan and cook meals without ever touching your phone or computer. It uses speech-to-text, intent recognition, and local recipe filtering to make home cooking easier.
+---
 
-It provides:
+## About
 
-    Recipe Discovery: Suggests 3–5 recipes based on your available ingredients, preferences, and skill level
+AI Sous Chef is a modular, voice-driven cooking assistant designed to make meal planning and cooking completely hands-free. It combines speech-to-text, intent recognition, recipe management, and conversational AI to help you discover, prepare, and navigate recipes using only your voice.
 
-    Step-by-Step Guidance: Reads out each recipe step and listens for navigation commands ("next step", "repeat", "substitute [ingredient]")
+- **Recipe Discovery:** Suggests 3–5 recipes based on your available ingredients, preferences, and skill level.
+- **Step-by-Step Guidance:** Reads out each recipe step and listens for navigation commands ("next step", "repeat", "substitute [ingredient]").
+- **Personalized Filtering:** Remembers dietary restrictions (vegan, keto, gluten-free), allergies, favorite cuisines, and cooking skill.
+- **ChatGPT Fallback:** Handles unrecognized questions or requests with conversational AI (optional, requires OpenAI key).
+- **Session Memory:** Saves your active cooking session and recent requests.
 
-    Personalized Filtering: Remembers dietary restrictions (vegan, keto, gluten-free, etc.), allergies, favorite cuisines, and skill level
+> **NOTE:** This tool is in ALPHA. Expect bugs and limited features. Test with caution!
 
-    ChatGPT Fallback: Handles unrecognized questions or requests with conversational AI (optional)
+---
 
-    Session Memory: Saves your active cooking session and recent requests
-
-    NOTE: This tool is in ALPHA. Expect bugs and limited features. Test with caution!
-
-Folder Organization
-
+## Folder Organization
+```
 /AI_Chef/
 │
-├── main.py
-├── ai/
+├── main.py                  # Main entry point
+│
+├── ai/                      # AI and NLP logic
 │   ├── chatgpt_api.py
 │   └── intent_parser.py
-├── voice/
+│
+├── voice/                   # Voice features (TTS, STT, wake word)
 │   ├── tts.py
 │   ├── wake_word.py
 │   └── whisper_stt.py
-├── recipes/
+│
+├── recipes/                 # Recipes and manager
 │   ├── recipes.json
 │   └── recipe_manager.py
-├── storage/
+│
+├── storage/                 # Storage modules
 │   ├── persistent_storage.py
 │   └── session_storage.py
-├── requirements.txt
-└── README.md
+│
+├── requirements.txt         # Dependencies
+├── README.md                # This file
+```
 
-How to Use
+---
 
-    Install Dependencies:
+## How to Use
+
+1. **Install Dependencies:**
 
 pip install pyttsx3 openai pvporcupine pyaudio numpy
 
-Set Up:
 
-    All core .py files are located in the main folders (see above).
+2. **Set Up:**
+ - All core `.py` files are organized by feature (see folder structure above).
+ - User preferences and session data are stored in `/storage/`.
+ - Recipes are stored in `/recipes/recipes.json` (edit or add your own!).
+ - *(Optional)* For ChatGPT features, add your OpenAI API key as instructed in `ai/chatgpt_api.py`.
 
-    User preferences and session info are stored in /storage/.
+3. **Run the Program:**
 
-    Recipes are stored in /recipes/recipes.json (edit or add your own).
+python main.py
 
-    (Optional) Add your OpenAI key if using ChatGPT features.
+- **Say "Hey Chef" to begin!**
 
-Run the Program:
+---
 
-    python main.py
+## Features
 
-        Speak "Hey Chef" to begin!
+- **Ingredient-Based Search:** Say what you have, and get recipe ideas.
+- **Step Navigation:** Control the recipe flow with voice commands.
+- **Custom User Profile:** Set allergies, diet, cuisine, restrictions, and skill.
+- **Ingredient Substitution:** Ask for alternatives during cooking.
+- **Hands-Free:** Wake word, TTS, and STT provide a fully voice-powered experience.
+- **Session Memory:** Remembers your progress and recent activity.
+- **ChatGPT Fallback:** Conversational support for broader questions (with OpenAI key).
 
-Features
+---
 
-    Ingredient-Based Search: Just say what you have, and get recipe ideas.
+## Dependencies
 
-    Step Navigation: Control the cooking process with your voice.
+- `pyttsx3` (text-to-speech)
+- `pvporcupine` (wake word detection)
+- `pyaudio` (audio input)
+- `numpy`
+- `openai` *(optional, for ChatGPT fallback)*
+- Python libraries: `os`, `json`, `wave`
 
-    Custom User Profile: Set allergies, diet, cuisine, restrictions, and cooking skill.
+---
 
-    Ingredient Substitution: Request substitutions on the fly.
+## Configuration
 
-    Hands-Free: Wake word, TTS, and STT for a full voice experience.
+- **No config file is required for basic use.**
+- For ChatGPT functionality, place your OpenAI API key as described in `ai/chatgpt_api.py`.
 
-Dependencies
+---
 
-    pyttsx3
+## Project Status
 
-    pvporcupine
-
-    pyaudio
-
-    numpy
-
-    openai (optional, for ChatGPT fallback)
-
-    Python libraries: os, json, wave
-
-Configuration
-
-No config file is required for basic use.
-For ChatGPT access, place your OpenAI API key in a file as instructed in ai/chatgpt_api.py.
-Project Status
-
-Alpha Release:
-Actively developed for Windows, will switch to Android once base is built. Feedback welcome!
-Expect rapid feature additions and possible breaking changes.
+**Alpha Release:**  
+Active development for Windows. Android support is planned once core functionality is complete.  
+Expect rapid feature additions and possible breaking changes—feedback welcome!
