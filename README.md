@@ -24,31 +24,31 @@ AI Sous Chef is a modular, voice-driven cooking assistant designed to make meal 
 ---
 
 ## Folder Organization
-
+```
 /AI_Chef/
 │
-├── main.py # Main entry point
+├── main.py                  # Main entry point
 │
-├── ai/ # AI and NLP logic
-│ ├── chatgpt_api.py
-│ └── intent_parser.py
+├── ai/                      # AI and NLP logic
+│   ├── chatgpt_api.py
+│   └── intent_parser.py
 │
-├── voice/ # Voice features (TTS, STT, wake word)
-│ ├── tts.py
-│ ├── wake_word.py
-│ └── whisper_stt.py
+├── voice/                   # Voice features (TTS, STT, wake word)
+│   ├── tts.py
+│   ├── wake_word.py
+│   └── whisper_stt.py
 │
-├── recipes/ # Recipes and manager
-│ ├── recipes.json
-│ └── recipe_manager.py
+├── recipes/                 # Recipes and manager
+│   ├── recipes.json
+│   └── recipe_manager.py
 │
-├── storage/ # Storage modules
-│ ├── persistent_storage.py
-│ └── session_storage.py
+├── storage/                 # Storage modules
+│   ├── persistent_storage.py
+│   └── session_storage.py
 │
-├── requirements.txt # Dependencies
-├── README.md # This file
-
+├── requirements.txt         # Dependencies
+├── README.md                # This file
+```
 
 ---
 
