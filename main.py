@@ -11,7 +11,10 @@ from voice.wake_word import listen_for_wake_word, record_audio
 from storage.session_storage import save_session_transcription
 from recipes.recipe_manager import filter_recipes, get_recipe_by_name, substitute_ingredient
 from recipes.substitutions import get_substitutes
+from utils.logger import log_event
+from utils.onboarding_script import onboarding_flow
 from utils.timer import set_timer, extract_timer_seconds
+from utils.user_profile_tools import clean_user_profile_input
 from storage.shopping_list import (
     add_to_shopping_list, get_shopping_list, clear_shopping_list
 )
@@ -39,25 +42,6 @@ def is_unclear(text):
     if len(text.split()) < 2:
         return "repeat"
     return None
-
-def ask_and_save_user_settings():
-    profile = load_user_profile()
-    speak("Let's set up your user profile.")
-    allergies = input("Do you have any allergies? (comma separated, or none): ")
-    diet = input("Are you vegan, vegetarian, or meat eater? (choose one): ")
-    restrictions = input("Do you have any dietary restrictions like gluten-free, keto, nut-free, etc? (comma separated, or none): ")
-    skill = input("How would you rank your cooking skill? (eggs only, beginner, intermediate, confident homecook, great homecook): ")
-    if diet.lower() == "meat eater":
-        meats = input("What types of meat do you eat? (comma separated): ")
-        profile["meats"] = [m.strip() for m in meats.split(",")]
-    cuisines = input("What cuisines do you like? (comma separated): ")
-    profile["allergies"] = [a.strip() for a in allergies.split(",") if a.strip()]
-    profile["diet"] = diet.lower()
-    profile["restrictions"] = [r.strip() for r in restrictions.split(",") if r.strip()]
-    profile["skill"] = skill
-    profile["cuisines"] = [c.strip() for c in cuisines.split(",") if c.strip()]
-    save_user_profile(profile)
-    speak("Your preferences have been saved.")
 
 def main_menu():
     options = (
@@ -180,10 +164,24 @@ def session_recipe_navigation(recipe):
                 continue
             command = parse_intent(clarify_text)
             if command == "unknown":
-                speak("Let me see if AI can help.")
-                ai_response = get_chatgpt_response(clarify_text)
-                speak(ai_response)
-                log_event("ai", f"Fallback AI used: {clarify_text} -> {ai_response}")
+                if "sale" in clarify_text.lower():
+                    try:
+                        from utils.deal_finder import suggest_recipes_from_sales
+                        sale_recipes = suggest_recipes_from_sales()
+                        if sale_recipes:
+                            speak("Here are some recipe ideas based on current sales near you.")
+                            for idx, r in enumerate(sale_recipes[:3], 1):
+                                speak(f"{idx}. {r['name']}")
+                        else:
+                            speak("I couldn't find any deals that matched your preferences.")
+                    except Exception as e:
+                        speak("There was a problem retrieving sale-based suggestions.")
+                        log_event("error", f"Deal finder exception: {e}")
+                else:
+                    speak("Let me see if AI can help.")
+                    ai_response = get_chatgpt_response(clarify_text)
+                    speak(ai_response)
+                    log_event("ai", f"Fallback AI used: {clarify_text} -> {ai_response}")
                 continue
             else:
                 user_text = clarify_text
@@ -366,7 +364,8 @@ def main():
             elif command == "start_recipe":
                 handle_start_recipe()
             elif command == "user_settings":
-                ask_and_save_user_settings()
+                onboarding_flow()
+                profile = load_user_profile()
             elif command == "help":
                 speak("Commands: Main Menu, Find Recipe, Start Recipe, Power Search, User Settings, Show my favorites, Last recipe I made, Shopping list, Help, Next Step, Previous Step, Repeat Step, Substitute ingredient, Favorite, Rate, Exit, Pause.")
             elif command == "favorite":

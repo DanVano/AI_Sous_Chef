@@ -4,6 +4,8 @@ pyaudio
 pvporcupine
 numpy
 whisper
+requests
+rapidfuzz
 
 
 # local whisper

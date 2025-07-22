@@ -33,5 +33,440 @@
       "Season and serve."
     ],
     "tags": ["breakfast", "easy"]
+  },
+  {
+    "name": "Grilled Cheese Sandwich",
+    "ingredients": [
+      "bread",
+      "cheddar cheese",
+      "butter"
+    ],
+    "steps": [
+      "Butter the bread slices.",
+      "Place cheese between slices.",
+      "Grill on pan until golden brown on both sides."
+    ],
+    "tags": [
+      "vegetarian",
+      "easy",
+      "under_15_min",
+      "comfort food",
+      "weeknight"
+    ]
+  },
+  {
+    "name": "Pasta Primavera",
+    "ingredients": [
+      "pasta",
+      "zucchini",
+      "bell pepper",
+      "olive oil",
+      "parmesan"
+    ],
+    "steps": [
+      "Boil pasta.",
+      "Saute vegetables.",
+      "Mix pasta and vegetables with olive oil and top with parmesan."
+    ],
+    "tags": [
+      "vegetarian",
+      "italian",
+      "easy",
+      "under_30_min",
+      "weeknight"
+    ]
+  },
+  {
+    "name": "Chicken Stir Fry",
+    "ingredients": [
+      "chicken breast",
+      "soy sauce",
+      "broccoli",
+      "carrot",
+      "garlic",
+      "rice"
+    ],
+    "steps": [
+      "Slice chicken and vegetables.",
+      "Stir fry chicken and set aside.",
+      "Stir fry vegetables, then combine with chicken and sauce. Serve with rice."
+    ],
+    "tags": [
+      "asian",
+      "under_30_min",
+      "gluten-free",
+      "dinner",
+      "weeknight"
+    ]
+  },
+  {
+    "name": "Greek Salad",
+    "ingredients": [
+      "tomato",
+      "cucumber",
+      "feta",
+      "olive oil",
+      "olives",
+      "onion"
+    ],
+    "steps": [
+      "Chop vegetables.",
+      "Mix with feta and olives.",
+      "Drizzle olive oil and mix."
+    ],
+    "tags": [
+      "vegetarian",
+      "greek",
+      "gluten-free",
+      "under_15_min",
+      "weeknight"
+    ]
+  },
+  {
+    "name": "Omelette",
+    "ingredients": [
+      "eggs",
+      "milk",
+      "cheddar cheese",
+      "salt",
+      "pepper"
+    ],
+    "steps": [
+      "Beat eggs with milk, salt, and pepper.",
+      "Cook in pan and add cheese before folding."
+    ],
+    "tags": [
+      "breakfast",
+      "vegetarian",
+      "easy",
+      "under_15_min",
+      "weeknight"
+    ]
+  },
+  {
+    "name": "Beef Tacos",
+    "ingredients": [
+      "ground beef",
+      "taco shells",
+      "lettuce",
+      "cheddar cheese",
+      "salsa"
+    ],
+    "steps": [
+      "Cook ground beef with spices.",
+      "Fill taco shells with beef, lettuce, cheese, and salsa."
+    ],
+    "tags": [
+      "mexican",
+      "under_30_min",
+      "family",
+      "meat",
+      "weeknight"
+    ]
+  },
+  {
+    "name": "Avocado Toast",
+    "ingredients": [
+      "bread",
+      "avocado",
+      "lemon juice",
+      "salt",
+      "pepper"
+    ],
+    "steps": [
+      "Toast bread.",
+      "Mash avocado with lemon, salt, and pepper.",
+      "Spread on toast."
+    ],
+    "tags": [
+      "breakfast",
+      "vegetarian",
+      "vegan",
+      "under_15_min",
+      "weeknight"
+    ]
+  },
+  {
+    "name": "Vegetable Soup",
+    "ingredients": [
+      "carrot",
+      "celery",
+      "onion",
+      "garlic",
+      "vegetable broth",
+      "tomato"
+    ],
+    "steps": [
+      "Chop vegetables.",
+      "Saute onion and garlic, add others and broth.",
+      "Simmer for 20 minutes."
+    ],
+    "tags": [
+      "vegan",
+      "gluten-free",
+      "comfort food",
+      "low-calorie",
+      "weeknight"
+    ]
+  },
+  {
+    "name": "Baked Salmon",
+    "ingredients": [
+      "salmon",
+      "lemon",
+      "olive oil",
+      "garlic",
+      "dill"
+    ],
+    "steps": [
+      "Place salmon on foil, top with seasoning.",
+      "Bake at 400\u00b0F for 15-20 minutes."
+    ],
+    "tags": [
+      "pescatarian",
+      "low-carb",
+      "gluten-free",
+      "high-protein",
+      "weeknight"
+    ]
+  },
+  {
+    "name": "Stuffed Peppers",
+    "ingredients": [
+      "bell pepper",
+      "rice",
+      "ground beef",
+      "tomato sauce",
+      "cheddar cheese"
+    ],
+    "steps": [
+      "Cook rice and beef, mix with sauce.",
+      "Stuff peppers and bake with cheese on top."
+    ],
+    "tags": [
+      "gluten-free",
+      "meat",
+      "dinner",
+      "family",
+      "weeknight"
+    ]
+  },
+  {
+    "name": "Grilled Cheese Sandwich (v2)",
+    "ingredients": [
+      "bread",
+      "cheddar cheese",
+      "butter"
+    ],
+    "steps": [
+      "Butter the bread slices.",
+      "Place cheese between slices.",
+      "Grill on pan until golden brown on both sides."
+    ],
+    "tags": [
+      "vegetarian",
+      "easy",
+      "under_15_min",
+      "comfort food",
+      "weeknight"
+    ]
+  },
+  {
+    "name": "Pasta Primavera (v2)",
+    "ingredients": [
+      "pasta",
+      "zucchini",
+      "bell pepper",
+      "olive oil",
+      "parmesan"
+    ],
+    "steps": [
+      "Boil pasta.",
+      "Saute vegetables.",
+      "Mix pasta and vegetables with olive oil and top with parmesan."
+    ],
+    "tags": [
+      "vegetarian",
+      "italian",
+      "easy",
+      "under_30_min",
+      "weeknight"
+    ]
+  },
+  {
+    "name": "Chicken Stir Fry (v2)",
+    "ingredients": [
+      "chicken breast",
+      "soy sauce",
+      "broccoli",
+      "carrot",
+      "garlic",
+      "rice"
+    ],
+    "steps": [
+      "Slice chicken and vegetables.",
+      "Stir fry chicken and set aside.",
+      "Stir fry vegetables, then combine with chicken and sauce. Serve with rice."
+    ],
+    "tags": [
+      "asian",
+      "under_30_min",
+      "gluten-free",
+      "dinner",
+      "weeknight"
+    ]
+  },
+  {
+    "name": "Greek Salad (v2)",
+    "ingredients": [
+      "tomato",
+      "cucumber",
+      "feta",
+      "olive oil",
+      "olives",
+      "onion"
+    ],
+    "steps": [
+      "Chop vegetables.",
+      "Mix with feta and olives.",
+      "Drizzle olive oil and mix."
+    ],
+    "tags": [
+      "vegetarian",
+      "greek",
+      "gluten-free",
+      "under_15_min",
+      "weeknight"
+    ]
+  },
+  {
+    "name": "Omelette (v2)",
+    "ingredients": [
+      "eggs",
+      "milk",
+      "cheddar cheese",
+      "salt",
+      "pepper"
+    ],
+    "steps": [
+      "Beat eggs with milk, salt, and pepper.",
+      "Cook in pan and add cheese before folding."
+    ],
+    "tags": [
+      "breakfast",
+      "vegetarian",
+      "easy",
+      "under_15_min",
+      "weeknight"
+    ]
+  },
+  {
+    "name": "Beef Tacos (v2)",
+    "ingredients": [
+      "ground beef",
+      "taco shells",
+      "lettuce",
+      "cheddar cheese",
+      "salsa"
+    ],
+    "steps": [
+      "Cook ground beef with spices.",
+      "Fill taco shells with beef, lettuce, cheese, and salsa."
+    ],
+    "tags": [
+      "mexican",
+      "under_30_min",
+      "family",
+      "meat",
+      "weeknight"
+    ]
+  },
+  {
+    "name": "Avocado Toast (v2)",
+    "ingredients": [
+      "bread",
+      "avocado",
+      "lemon juice",
+      "salt",
+      "pepper"
+    ],
+    "steps": [
+      "Toast bread.",
+      "Mash avocado with lemon, salt, and pepper.",
+      "Spread on toast."
+    ],
+    "tags": [
+      "breakfast",
+      "vegetarian",
+      "vegan",
+      "under_15_min",
+      "weeknight"
+    ]
+  },
+  {
+    "name": "Vegetable Soup (v2)",
+    "ingredients": [
+      "carrot",
+      "celery",
+      "onion",
+      "garlic",
+      "vegetable broth",
+      "tomato"
+    ],
+    "steps": [
+      "Chop vegetables.",
+      "Saute onion and garlic, add others and broth.",
+      "Simmer for 20 minutes."
+    ],
+    "tags": [
+      "vegan",
+      "gluten-free",
+      "comfort food",
+      "low-calorie",
+      "weeknight"
+    ]
+  },
+  {
+    "name": "Baked Salmon (v2)",
+    "ingredients": [
+      "salmon",
+      "lemon",
+      "olive oil",
+      "garlic",
+      "dill"
+    ],
+    "steps": [
+      "Place salmon on foil, top with seasoning.",
+      "Bake at 400\u00b0F for 15-20 minutes."
+    ],
+    "tags": [
+      "pescatarian",
+      "low-carb",
+      "gluten-free",
+      "high-protein",
+      "weeknight"
+    ]
+  },
+  {
+    "name": "Stuffed Peppers (v2)",
+    "ingredients": [
+      "bell pepper",
+      "rice",
+      "ground beef",
+      "tomato sauce",
+      "cheddar cheese"
+    ],
+    "steps": [
+      "Cook rice and beef, mix with sauce.",
+      "Stuff peppers and bake with cheese on top."
+    ],
+    "tags": [
+      "gluten-free",
+      "meat",
+      "dinner",
+      "family",
+      "weeknight"
+    ]
   }
+
 ]
