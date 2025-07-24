@@ -1,0 +1,18 @@
+from recipes.recipe_manager import filter_recipes, get_recipe_by_name, substitute_ingredient
+from storage.persistent_storage import save_last_recipe
+from storage.shopping_list import add_to_shopping_list, get_shopping_list, clear_shopping_list
+from storage.persistent_storage import load_last_recipe, save_favorite
+from ai.intent_parser import parse_intent
+from voice.tts import speak
+from voice.whisper_stt import transcribe_audio
+from voice.wake_word import record_audio
+from utils.logger import log_event
+from utils.timer import set_timer, extract_timer_seconds
+from ai.chatgpt_api import get_chatgpt_response
+from ai.local_assistant import LocalAssistant
+from utils.conversion_utils import extract_rating, extract_substitute_ingredients, is_unclear
+
+local_ai = LocalAssistant()
+
+def handle_ai_fallback(prompt):
+    ...

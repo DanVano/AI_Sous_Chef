@@ -6,6 +6,7 @@ numpy
 whisper
 requests
 rapidfuzz
+llama-cpp-python
 
 
 # local whisper

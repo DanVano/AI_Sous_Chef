@@ -1,0 +1,8 @@
+{"instruction": "What can I cook with tofu?", "input": "", "output": "Tofu stir fry, tofu scramble, or baked tofu."}
+{"instruction": "How long does it take to bake salmon?", "input": "", "output": "About 15-20 minutes at 400°F."}
+{"instruction": "What’s a substitute for eggs in baking?", "input": "", "output": "Use applesauce, mashed banana, or yogurt."}
+{"instruction": "What's step 3 in my recipe?", "input": "", "output": "Step 3 usually involves cooking the main ingredient."}
+{"instruction": "Repeat that step", "input": "", "output": "Sure. Step 2 was: Sauté the onions in olive oil until soft."}
+{"instruction": "How many steps are in this recipe?", "input": "", "output": "This recipe has 5 steps."}
+{"instruction": "What is the current step?", "input": "", "output": "You're on step 2 of 5."}
+{"instruction": "Can I replace butter with something?", "input": "", "output": "Yes. Try margarine, coconut oil, or olive oil."}
