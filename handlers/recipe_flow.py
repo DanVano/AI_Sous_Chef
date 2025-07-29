@@ -3,7 +3,7 @@ from ai.intent_parser import parse_intent
 from ai.local_assistant import LocalAssistant
 from handlers.side_dish_recommender import suggest_side_dishes
 from storage.pantry import get_fresh_items
-from storage.persistent_storage import save_favorite
+from storage.persistent_storage import save_favorite, log_recipe_usage
 from utils.conversion_utils import extract_ratin
 from utils.logger import log_event
 from voice.tts import speak
@@ -231,6 +231,7 @@ def session_recipe_navigation(recipe, resume_step=0):
             else:
                 speak("Sorry, I didn’t catch that. Say next, repeat, back, pause, or step number.")
 
+    log_recipe_usage(recipe.get("name", "unknown"), step_events=len(steps), repeated_steps=repeats)
     # Post-recipe save prompt
     speak("Would you like to save this recipe?")
     record_audio("save_recipe.wav", record_seconds=3)

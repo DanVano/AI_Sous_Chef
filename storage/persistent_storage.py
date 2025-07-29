@@ -6,6 +6,8 @@
 import json
 import os
 
+from datetime import datetime
+
 STORAGE_DIR = os.path.join(os.path.dirname(__file__), "..", "storage")
 PROFILE_FILE = os.path.join(STORAGE_DIR, "user_profile.json")
 FAV_FILE = os.path.join(STORAGE_DIR, "favorites.json")
@@ -45,4 +47,28 @@ def load_last_recipe():
     if not os.path.exists(LAST_RECIPE_FILE):
         return None
     with open(LAST_RECIPE_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+HISTORY_FILE = os.path.join(STORAGE_DIR, "recipe_history.json")
+
+def log_recipe_usage(recipe_name, step_events=0, repeated_steps=0):
+    if not os.path.exists(HISTORY_FILE):
+        history = {}
+    else:
+        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+            history = json.load(f)
+
+    entry = history.get(recipe_name, {"times_cooked": 0, "steps_repeated": 0, "steps_total": 0})
+    entry["times_cooked"] += 1
+    entry["steps_total"] += step_events
+    entry["steps_repeated"] += repeated_steps
+    history[recipe_name] = entry
+
+    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(history, f, indent=2)
+
+def load_recipe_history():
+    if not os.path.exists(HISTORY_FILE):
+        return {}
+    with open(HISTORY_FILE, "r", encoding="utf-8") as f:
         return json.load(f)

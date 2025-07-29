@@ -1,6 +1,11 @@
 from ai.intent_parser import parse_intent
 from ai.local_assistant import LocalAssistant
 from ai.chatgpt_api import get_chatgpt_response
+from handlers.dynamic_recipe_builder import generate_dynamic_recipe
+from handlers.profile_flow import handle_show_favorites, handle_last_recipe, handle_shopping_list
+from handlers.meal_planner import suggest_meal_plan
+from handlers.recipe_flow import handle_find_recipe, handle_start_recipe, handle_power_search, session_recipe_navigation
+from onboarding_script import onboarding_flow
 from voice.tts import speak
 from voice.wake_word import listen_for_wake_word, record_audio
 from voice.whisper_stt import transcribe_audio
@@ -9,10 +14,8 @@ from storage.persistent_storage import load_user_profile
 from storage.session_storage import save_session_transcription
 from utils.convo_memory import recall
 from utils.logger import log_event
-from onboarding_script import onboarding_flow
-from handlers.dynamic_recipe_builder import generate_dynamic_recipe
-from handlers.recipe_flow import handle_find_recipe, handle_start_recipe, handle_power_search, session_recipe_navigation
-from handlers.profile_flow import handle_show_favorites, handle_last_recipe, handle_shopping_list
+
+
 
 local_ai = LocalAssistant()
 
@@ -122,6 +125,8 @@ def main():
             elif command == "clear_pantry":
                 clear_pantry()
                 speak("Pantry cleared.")
+            elif command == "meal_plan":
+                suggest_meal_plan()
             elif command == "repeat_last":
                 speak(recall())
             elif command == "unknown":

@@ -37,7 +37,8 @@ COMMANDS = {
     "repeat_last": ["what did you just say", "say that again", "repeat last", "repeat that", "what was that"],
     "summarize_steps": ["summarize steps", "repeat all steps", "what are the steps again", "go over steps again"],
     "recap_recipe": ["what am i making", "what am i cooking", "what are we making", "remind me what this recipe is", "what am i making again", "what's the recipe"],
-    "suggest_side": ["what goes with this", "suggest side dish", "what sides go with this", "recommend a side"]
+    "suggest_side": ["what goes with this", "suggest side dish", "what sides go with this", "recommend a side"],
+     "meal_plan": ["plan meals", "meal plan", "prepare for the week", "give me dinner ideas for the week"]
 
 
 }
