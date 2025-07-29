@@ -12,6 +12,7 @@ from voice.whisper_stt import transcribe_audio
 from storage.pantry import add_to_pantry, load_pantry, clear_pantry, get_fresh_items
 from storage.persistent_storage import load_user_profile
 from storage.session_storage import save_session_transcription
+from utils.audio_utils import capture_command
 from utils.convo_memory import recall
 from utils.logger import log_event
 
@@ -56,8 +57,7 @@ def main():
 
         if listen_for_wake_word():
             speak("Ready!")
-            record_audio("main_cmd.wav", record_seconds=4)
-            user_text = transcribe_audio("main_cmd.wav")
+            user_text = capture_command("main_cmd.wav", "How can I help you?")
             log_event("input", f"Main menu command: {user_text}")
             save_session_transcription(user_text)
 
@@ -95,8 +95,7 @@ def main():
                 speak("Pausing. Say resume or continue when you are ready.")
                 log_event("system", "User paused at main menu.")
                 while True:
-                    record_audio("pause_cmd.wav", record_seconds=3)
-                    pause_cmd = transcribe_audio("pause_cmd.wav")
+                    pause_cmd = capture_command("pause_cmd.wav", "Say resume or continue.")
                     if pause_cmd and ("resume" in pause_cmd.lower() or "continue" in pause_cmd.lower()):
                         speak("Resuming.")
                         log_event("system", "User resumed from main menu pause.")
@@ -108,9 +107,7 @@ def main():
 	    elif command == "dynamic_recipe":
     		generate_dynamic_recipe(profile)
             elif command == "add_pantry":
-                speak("What ingredient should I add to your pantry?")
-                record_audio("add_pantry.wav", record_seconds=3)
-                item = transcribe_audio("add_pantry.wav")
+                item = capture_command("add_pantry.wav", "What ingredient should I add to your pantry?")
                 if item:
                     add_to_pantry(item)
                     speak(f"{item} added to your pantry.")

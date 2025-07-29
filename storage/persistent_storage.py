@@ -27,7 +27,7 @@ def save_favorite(recipe, rating=None):
     favs = load_favorites()
     entry = {
         "recipe": recipe,
-        "rating": rating
+        "rating": rating if isinstance(rating, int) and 1 <= rating <= 5 else None
     }
     favs[recipe["name"]] = entry
     with open(FAV_FILE, "w", encoding="utf-8") as f:
@@ -36,8 +36,25 @@ def save_favorite(recipe, rating=None):
 def load_favorites():
     if not os.path.exists(FAV_FILE):
         return {}
-    with open(FAV_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+
+    try:
+        with open(FAV_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            # Validate structure
+            cleaned = {}
+            for k, v in data.items():
+                if isinstance(v, dict) and "recipe" in v:
+                    rating = v.get("rating")
+                    if isinstance(rating, int) and 1 <= rating <= 5:
+                        cleaned[k] = v
+                    else:
+                        cleaned[k] = {"recipe": v["recipe"], "rating": None}
+                elif isinstance(v, str):  # legacy format
+                    cleaned[k] = {"recipe": v, "rating": None}
+            return cleaned
+    except Exception as e:
+        print(f"Favorites file error: {e}")
+        return {}
 
 def save_last_recipe(recipe):
     with open(LAST_RECIPE_FILE, "w", encoding="utf-8") as f:

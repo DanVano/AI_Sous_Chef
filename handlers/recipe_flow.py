@@ -4,6 +4,7 @@ from ai.local_assistant import LocalAssistant
 from handlers.side_dish_recommender import suggest_side_dishes
 from storage.pantry import get_fresh_items
 from storage.persistent_storage import save_favorite, log_recipe_usage
+from utils.audio_utils import capture_command, debounce_command
 from utils.conversion_utils import extract_ratin
 from utils.logger import log_event
 from voice.tts import speak
@@ -129,8 +130,10 @@ def session_recipe_navigation(recipe, resume_step=0):
 
         while True:
             speak("Say 'next', 'repeat', 'back', 'pause', or 'go to step'.")
-            record_audio("step_cmd.wav", record_seconds=4)
-            step_cmd = transcribe_audio("step_cmd.wav").lower()
+            step_cmd = capture_command("step_cmd.wav", "Say 'next', 'repeat', 'back', or a step.")
+            if not debounce_command(step_cmd):
+                speak("Duplicate command detected. Ignoring.")
+                continue
             log_event("step_command", step_cmd)
 
             command = parse_intent(step_cmd)
@@ -234,8 +237,7 @@ def session_recipe_navigation(recipe, resume_step=0):
     log_recipe_usage(recipe.get("name", "unknown"), step_events=len(steps), repeated_steps=repeats)
     # Post-recipe save prompt
     speak("Would you like to save this recipe?")
-    record_audio("save_recipe.wav", record_seconds=3)
-    response = transcribe_audio("save_recipe.wav").lower()
+    response = capture_command("save_recipe.wav", "Would you like to save this recipe?")
     if "yes" in response or "save" in response or "favorite" in response:
         save_favorite(recipe)
         speak("Recipe saved.")
