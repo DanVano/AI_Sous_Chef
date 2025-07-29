@@ -74,11 +74,14 @@ def substitute_ingredient(recipe, old_ingredient, new_ingredient):
 
 def prioritize_by_pantry(recipes, days_fresh=3):
     fresh_items, stale_items = get_fresh_items(days_fresh)
-    fresh_set = set(item for item, _ in fresh_items)
+    expiring_items = set(i for i, days in stale_items if days >= days_fresh)
+    fresh_items_set = set(i for i, _ in fresh_items)
 
     def score(recipe):
-        matches = sum(1 for i in recipe["ingredients"] if i.lower() in fresh_set)
-        return matches
+        ingr = set(i.lower() for i in recipe["ingredients"])
+        matches_expiring = len(ingr & expiring_items)
+        matches_fresh = len(ingr & fresh_items_set)
+        return (matches_expiring * 10) + matches_fresh  # heavier weight for expiring food
 
     recipes.sort(key=score, reverse=True)
     return recipes

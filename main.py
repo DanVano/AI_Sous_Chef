@@ -4,7 +4,7 @@ from ai.chatgpt_api import get_chatgpt_response
 from voice.tts import speak
 from voice.wake_word import listen_for_wake_word, record_audio
 from voice.whisper_stt import transcribe_audio
-from storage.pantry import add_to_pantry, load_pantry, clear_pantry
+from storage.pantry import add_to_pantry, load_pantry, clear_pantry, get_fresh_items
 from storage.persistent_storage import load_user_profile
 from storage.session_storage import save_session_transcription
 from utils.convo_memory import recall
@@ -44,6 +44,10 @@ def main():
             speak("Welcome to AI Chef!")
             main_menu()
             first_run = False
+        fresh, stale = get_fresh_items()
+        for item, days in stale:
+            if days == 3:
+                speak(f"Reminder: {item.capitalize()} may start to spoil. Consider using it today.")
         else:
             main_menu()
 

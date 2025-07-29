@@ -1,6 +1,7 @@
 from ai.chatgpt_api import get_chatgpt_response 
 from ai.intent_parser import parse_intent
 from ai.local_assistant import LocalAssistant
+from handlers.side_dish_recommender import suggest_side_dishes
 from storage.pantry import get_fresh_items
 from storage.persistent_storage import save_favorite
 from utils.conversion_utils import extract_ratin
@@ -180,6 +181,18 @@ def session_recipe_navigation(recipe, resume_step=0):
             elif command == "list_all_steps":
                 for i, s in enumerate(steps, 1):
                     speak(f"Step {i}: {s}")
+            elif command == "summarize_steps":
+                speak("Here's a summary of the steps:")
+                for i, s in enumerate(steps, 1):
+                    speak(f"Step {i}: {s}")
+            elif command == "suggest_side":
+                suggest_side_dishes(recipe)     
+            elif command == "recap_recipe":
+                speak(f"You are making {recipe.get('name', 'a recipe')}.")
+                if recipe.get("ingredients"):
+                    speak("Ingredients include:")
+                    speak(", ".join(recipe["ingredients"]))
+                    speak(f"This recipe has {len(steps)} steps.")
             elif command == "describe_step":
                 speak(step)
             elif command == "list_ingredients":

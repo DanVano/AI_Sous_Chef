@@ -34,7 +34,11 @@ COMMANDS = {
     "add_pantry": ["add to pantry", "store in pantry", "pantry add"],
     "show_pantry": ["what's in my pantry", "show pantry", "list pantry"],
     "clear_pantry": ["clear pantry", "empty pantry"],
-    "repeat_last": ["what did you just say", "say that again", "repeat last", "repeat that", "what was that"]
+    "repeat_last": ["what did you just say", "say that again", "repeat last", "repeat that", "what was that"],
+    "summarize_steps": ["summarize steps", "repeat all steps", "what are the steps again", "go over steps again"],
+    "recap_recipe": ["what am i making", "what am i cooking", "what are we making", "remind me what this recipe is", "what am i making again", "what's the recipe"],
+    "suggest_side": ["what goes with this", "suggest side dish", "what sides go with this", "recommend a side"]
+
 
 }
 
