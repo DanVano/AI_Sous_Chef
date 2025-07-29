@@ -23,10 +23,11 @@ def load_user_profile():
 
 def save_favorite(recipe, rating=None):
     favs = load_favorites()
-    if rating:
-        favs[recipe['name']] = rating
-    else:
-        favs[recipe['name']] = None
+    entry = {
+        "recipe": recipe,
+        "rating": rating
+    }
+    favs[recipe["name"]] = entry
     with open(FAV_FILE, "w", encoding="utf-8") as f:
         json.dump(favs, f, indent=2)
 

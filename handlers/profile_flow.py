@@ -9,11 +9,12 @@ def handle_show_favorites():
         speak("You have no favorite recipes yet.")
         return
     speak("Your favorite recipes are:")
-    for recipe, rating in favorites.items():
+    for recipe_name, data in favorites.items():
+        rating = data.get("rating")
         if rating:
-            speak(f"{recipe}, rated {rating} stars.")
+            speak(f"{recipe_name}, rated {rating} stars.")
         else:
-            speak(recipe)
+            speak(recipe_name)
 
 def handle_last_recipe():
     recipe = load_last_recipe()

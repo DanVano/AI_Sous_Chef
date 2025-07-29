@@ -5,6 +5,8 @@
 import json
 import os
 
+from storage.pantry import get_fresh_items
+
 RECIPE_FILE = os.path.join("recipes", "recipes.json")
 
 def load_recipes():
@@ -48,7 +50,9 @@ def filter_recipes(ingredients, user_profile=None, num_options=5):
     # Sort by # of matching ingredients (desc)
     filtered.sort(reverse=True, key=lambda tup: tup[0])
     # Return top N
-    return [r for _, r in filtered[:num_options]]
+    filtered = [r for _, r in filtered[:num_options]]
+    filtered = prioritize_by_pantry(filtered)
+    return filtered
 
 def get_recipe_by_name(name):
     recipes = load_recipes()
@@ -66,3 +70,15 @@ def substitute_ingredient(recipe, old_ingredient, new_ingredient):
     new_recipe["ingredients"] = new_ingredients
     # Optionally: update steps if you want, for now keep as is
     return new_recipe
+
+
+def prioritize_by_pantry(recipes, days_fresh=3):
+    fresh_items, stale_items = get_fresh_items(days_fresh)
+    fresh_set = set(item for item, _ in fresh_items)
+
+    def score(recipe):
+        matches = sum(1 for i in recipe["ingredients"] if i.lower() in fresh_set)
+        return matches
+
+    recipes.sort(key=score, reverse=True)
+    return recipes

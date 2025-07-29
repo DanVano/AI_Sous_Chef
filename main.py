@@ -4,10 +4,13 @@ from ai.chatgpt_api import get_chatgpt_response
 from voice.tts import speak
 from voice.wake_word import listen_for_wake_word, record_audio
 from voice.whisper_stt import transcribe_audio
+from storage.pantry import add_to_pantry, load_pantry, clear_pantry
 from storage.persistent_storage import load_user_profile
 from storage.session_storage import save_session_transcription
+from utils.convo_memory import recall
 from utils.logger import log_event
 from onboarding_script import onboarding_flow
+from handlers.dynamic_recipe_builder import generate_dynamic_recipe
 from handlers.recipe_flow import handle_find_recipe, handle_start_recipe, handle_power_search, session_recipe_navigation
 from handlers.profile_flow import handle_show_favorites, handle_last_recipe, handle_shopping_list
 
@@ -95,6 +98,28 @@ def main():
                         speak("Still paused. Say resume or continue when ready.")
             elif command in ("next_step", "previous_step", "repeat_step"):
                 speak(f"{command.replace('_', ' ').capitalize()} command not implemented here.")
+	    elif command == "dynamic_recipe":
+    		generate_dynamic_recipe(profile)
+            elif command == "add_pantry":
+                speak("What ingredient should I add to your pantry?")
+                record_audio("add_pantry.wav", record_seconds=3)
+                item = transcribe_audio("add_pantry.wav")
+                if item:
+                    add_to_pantry(item)
+                    speak(f"{item} added to your pantry.")
+            elif command == "show_pantry":
+                    pantry = load_pantry()
+                    if pantry:
+                        speak("These items are in your pantry:")
+                        for item in pantry:
+                            speak(item)
+                    else:
+                        speak("Your pantry is empty.")
+            elif command == "clear_pantry":
+                clear_pantry()
+                speak("Pantry cleared.")
+            elif command == "repeat_last":
+                speak(recall())
             elif command == "unknown":
                 if user_text.strip():
                     speak("Let me think about that...")

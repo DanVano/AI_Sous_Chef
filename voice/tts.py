@@ -4,6 +4,8 @@
 
 import pyttsx3
 
+from utils.convo_memory import remember
+
 # Initialize the TTS engine once at module load
 _engine = pyttsx3.init()
 _engine.setProperty('rate', 180)  # You can adjust speech rate if you want (default 200)
@@ -16,3 +18,4 @@ def speak(text):
     print(f"(TTS) {text}")
     _engine.say(text)
     _engine.runAndWait()
+    remember(text)

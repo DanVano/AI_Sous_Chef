@@ -29,7 +29,13 @@ COMMANDS = {
     "clear_shopping": ["clear shopping list", "empty shopping list"],
     "power_search": ["what can i cook with", "what should i cook with", "recipes with", "show recipes with", "what meals can i make with these", "search by ingredients", "recipes using"],
     "exit": ["exit", "quit", "goodbye", "close program", "i'm done", "that's enough", "close app", "shut it down", "bye chef"],
-    "pause": ["pause", "wait", "hold on", "give me a sec", "one moment", "hang on a second", "pause for now"]
+    "pause": ["pause", "wait", "hold on", "give me a sec", "one moment", "hang on a second", "pause for now"],
+    "dynamic_recipe": ["build me a recipe", "what can i make with", "custom recipe", "make me a meal", "generate recipe"],
+    "add_pantry": ["add to pantry", "store in pantry", "pantry add"],
+    "show_pantry": ["what's in my pantry", "show pantry", "list pantry"],
+    "clear_pantry": ["clear pantry", "empty pantry"],
+    "repeat_last": ["what did you just say", "say that again", "repeat last", "repeat that", "what was that"]
+
 }
 
 def parse_intent(user_text):
