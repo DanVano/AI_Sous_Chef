@@ -21,4 +21,20 @@ def is_unclear(text):
         return "unclear"
     if len(text.split()) < 2:
         return "repeat"
+    bad_phrases = ["uh", "what", "sorry", "say again", "i don't know"]
+    if any(p in text.lower() for p in bad_phrases):
+        return "repeat"
     return None
+
+def summarize_recipe(recipe):
+    name = recipe.get("name", "a recipe")
+    ingredients = recipe.get("ingredients", [])
+    steps = recipe.get("steps", [])
+    return f"You’re making {name}. It uses {len(ingredients)} ingredients and has {len(steps)} steps."
+
+def sanitize_user_input(text):
+    ignore_phrases = ["add", "to pantry", "to list", "please", "can you", "i want", "uh", "um"]
+    text = text.lower()
+    for phrase in ignore_phrases:
+        text = text.replace(phrase, "")
+    return text.strip()

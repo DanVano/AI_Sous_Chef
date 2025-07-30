@@ -85,3 +85,28 @@ def prioritize_by_pantry(recipes, days_fresh=3):
 
     recipes.sort(key=score, reverse=True)
     return recipes
+
+def smart_recipe_picker(profile, pantry_items, favorites=None, max_recipes=9):
+    from storage.persistent_storage import load_favorites
+    from utils.deal_finder import suggest_recipes_from_sales
+
+    sale_recipes = []
+    try:
+        sale_recipes = suggest_recipes_from_sales()
+    except:
+        pass
+
+    local_matches = filter_recipes(pantry_items, profile, num_options=15)
+    local_matches = prioritize_by_pantry(local_matches)
+
+    if favorites is None:
+        favorites = load_favorites()
+
+    plan = []
+    seen = set()
+    for group in [sale_recipes, local_matches, [f["recipe"] for f in favorites.values()]]:
+        for r in group:
+            if r["name"] not in seen and len(plan) < max_recipes:
+                plan.append(r)
+                seen.add(r["name"])
+    return plan

@@ -12,7 +12,8 @@ from voice.whisper_stt import transcribe_audio
 from storage.pantry import add_to_pantry, load_pantry, clear_pantry, get_fresh_items
 from storage.persistent_storage import load_user_profile
 from storage.session_storage import save_session_transcription
-from utils.audio_utils import capture_command
+from storage.shopping_list import add_to_shopping_list
+from utils.audio_utils import capture_command, capture_ingredient
 from utils.convo_memory import recall
 from utils.logger import log_event
 
@@ -107,10 +108,12 @@ def main():
 	    elif command == "dynamic_recipe":
     		generate_dynamic_recipe(profile)
             elif command == "add_pantry":
-                item = capture_command("add_pantry.wav", "What ingredient should I add to your pantry?")
+                item = capture_ingredient("add_pantry.wav", "What ingredient should I add to your pantry?")
                 if item:
                     add_to_pantry(item)
                     speak(f"{item} added to your pantry.")
+                else:
+                    speak("I didn’t catch any ingredient to add.")
             elif command == "show_pantry":
                     pantry = load_pantry()
                     if pantry:
@@ -119,6 +122,13 @@ def main():
                             speak(item)
                     else:
                         speak("Your pantry is empty.")
+            elif command == "add_shopping":
+                item = capture_ingredient("add_shop.wav", "What should I add to your shopping list?")
+                if item:
+                    add_to_shopping_list(item)
+                    speak(f"{item} added to your shopping list.")
+                else:
+                    speak("I didn’t catch any item to add.")
             elif command == "clear_pantry":
                 clear_pantry()
                 speak("Pantry cleared.")

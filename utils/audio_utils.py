@@ -1,4 +1,7 @@
 import time
+
+from utils.conversion_utils import sanitize_user_input
+from utils.ingredient_matcher import match_ingredient
 from voice.tts import speak
 from voice.wake_word import record_audio
 from voice.whisper_stt import transcribe_audio
@@ -41,3 +44,34 @@ def debounce_command(cmd, cooldown=1.0):
     _last_cmd_time = now
     _last_cmd_text = cmd
     return True
+
+def capture_ingredient(filename="ingredient.wav", prompt="Say an ingredient to add", max_retries=2, record_seconds=3):
+    """
+    Specialized voice handler for capturing ingredient names.
+    Includes voice retries, formatting, and fuzzy matching.
+    """
+    for _ in range(max_retries):
+        raw = capture_command(filename, prompt, record_seconds=record_seconds)
+
+        if not raw:
+            continue
+
+        # Remove common prefixes like "add", "to pantry", etc.
+        for word in ["add", "to pantry", "to list", "please add"]:
+            raw = sanitize_user_input(raw)
+
+        cleaned = match_ingredient(raw)
+        return cleaned if cleaned else raw  # fallback to raw if no match
+
+    return ""
+
+def confirm_yes_no(prompt="Do you want to proceed?", retries=2):
+    for _ in range(retries):
+        response = capture_command("confirm.wav", prompt)
+        if any(word in response for word in ["yes", "sure", "yeah", "go ahead"]):
+            return True
+        elif any(word in response for word in ["no", "not now", "cancel"]):
+            return False
+        else:
+            speak("Please say yes or no.")
+    return False

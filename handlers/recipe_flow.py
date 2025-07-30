@@ -4,8 +4,9 @@ from ai.local_assistant import LocalAssistant
 from handlers.side_dish_recommender import suggest_side_dishes
 from storage.pantry import get_fresh_items
 from storage.persistent_storage import save_favorite, log_recipe_usage
-from utils.audio_utils import capture_command, debounce_command
-from utils.conversion_utils import extract_ratin
+from storage.shopping_list import add_to_shopping_list
+from utils.audio_utils import capture_command, capture_ingredient, debounce_command, confirm_yes_no
+from utils.conversion_utils import extract_ratin, summarize_recipe
 from utils.logger import log_event
 from voice.tts import speak
 from voice.wake_word import record_audio
@@ -131,6 +132,13 @@ def session_recipe_navigation(recipe, resume_step=0):
         while True:
             speak("Say 'next', 'repeat', 'back', 'pause', or 'go to step'.")
             step_cmd = capture_command("step_cmd.wav", "Say 'next', 'repeat', 'back', or a step.")
+	    uncertainty = is_command_unclear(step_cmd)
+            if uncertainty == "unclear":
+                speak("Sorry, I didn’t catch that. Please try again.")
+                continue
+            elif uncertainty == "repeat":
+                speak("Could you say that again more clearly?")
+                continue
             if not debounce_command(step_cmd):
                 speak("Duplicate command detected. Ignoring.")
                 continue
@@ -191,11 +199,7 @@ def session_recipe_navigation(recipe, resume_step=0):
             elif command == "suggest_side":
                 suggest_side_dishes(recipe)     
             elif command == "recap_recipe":
-                speak(f"You are making {recipe.get('name', 'a recipe')}.")
-                if recipe.get("ingredients"):
-                    speak("Ingredients include:")
-                    speak(", ".join(recipe["ingredients"]))
-                    speak(f"This recipe has {len(steps)} steps.")
+                speak(summarize_recipe(recipe))
             elif command == "describe_step":
                 speak(step)
             elif command == "list_ingredients":
@@ -207,6 +211,13 @@ def session_recipe_navigation(recipe, resume_step=0):
                     set_timer(seconds)
                 else:
                     speak("Please say a timer like 'set a timer for 5 minutes'.")
+            elif command == "add_shopping":
+                item = capture_ingredient("add_shop_step.wav", "What ingredient should I add to your shopping list?")
+                if item:
+                    add_to_shopping_list(item)
+                    speak(f"{item} added to your shopping list.")
+                else:
+                    speak("I didn’t catch any item to add.")
             elif command == "unknown":
                 # Handle jump to step by number or keyword
                 if "step" in step_cmd:
@@ -236,9 +247,7 @@ def session_recipe_navigation(recipe, resume_step=0):
 
     log_recipe_usage(recipe.get("name", "unknown"), step_events=len(steps), repeated_steps=repeats)
     # Post-recipe save prompt
-    speak("Would you like to save this recipe?")
-    response = capture_command("save_recipe.wav", "Would you like to save this recipe?")
-    if "yes" in response or "save" in response or "favorite" in response:
+    if confirm_yes_no("Would you like to save this recipe?"):
         save_favorite(recipe)
         speak("Recipe saved.")
     else:
