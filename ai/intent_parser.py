@@ -39,7 +39,8 @@ COMMANDS = {
     "recap_recipe": ["what am i making", "what am i cooking", "what are we making", "remind me what this recipe is", "what am i making again", "what's the recipe"],
     "suggest_side": ["what goes with this", "suggest side dish", "what sides go with this", "recommend a side"],
      "meal_plan": ["plan meals", "meal plan", "prepare for the week", "give me dinner ideas for the week"],
-     "add_shopping": ["add to shopping list", "add to list", "shopping list add"]
+     "add_shopping": ["add to shopping list", "add to list", "shopping list add"],
+     "why_this_recipe": ["why did you suggest this", "why this recipe", "explain this choice", "why am I making this"]
 
 
 }

@@ -3,10 +3,10 @@ from ai.intent_parser import parse_intent
 from ai.local_assistant import LocalAssistant
 from handlers.side_dish_recommender import suggest_side_dishes
 from storage.pantry import get_fresh_items
-from storage.persistent_storage import save_favorite, log_recipe_usage
+from storage.persistent_storage import save_favorite, log_recipe_usage, load_user_profile
 from storage.shopping_list import add_to_shopping_list
 from utils.audio_utils import capture_command, capture_ingredient, debounce_command, confirm_yes_no
-from utils.conversion_utils import extract_ratin, summarize_recipe
+from utils.conversion_utils import extract_rating, summarize_recipe, explain_recipe_choice, is_unclear
 from utils.logger import log_event
 from voice.tts import speak
 from voice.wake_word import record_audio
@@ -122,6 +122,7 @@ def session_recipe_navigation(recipe, resume_step=0):
         return
 
     current_index = resume_step
+    repeats = 0
 
     while current_index < len(steps):
         step = steps[current_index]
@@ -132,7 +133,7 @@ def session_recipe_navigation(recipe, resume_step=0):
         while True:
             speak("Say 'next', 'repeat', 'back', 'pause', or 'go to step'.")
             step_cmd = capture_command("step_cmd.wav", "Say 'next', 'repeat', 'back', or a step.")
-	    uncertainty = is_command_unclear(step_cmd)
+            uncertainty = is_unclear(step_cmd)
             if uncertainty == "unclear":
                 speak("Sorry, I didn’t catch that. Please try again.")
                 continue
@@ -151,6 +152,7 @@ def session_recipe_navigation(recipe, resume_step=0):
                 break
             elif command == "repeat_step":
                 speak(f"Repeating Step {step_num}: {step}")
+                repeats += 1
             elif command == "previous_step":
                 if current_index > 0:
                     current_index -= 1
@@ -211,11 +213,19 @@ def session_recipe_navigation(recipe, resume_step=0):
                     set_timer(seconds)
                 else:
                     speak("Please say a timer like 'set a timer for 5 minutes'.")
+            elif command == "why_this_recipe":
+                fresh, _ = get_fresh_items()
+                pantry_items = [item for item, _ in fresh]
+                profile = load_user_profile()
+                why = explain_recipe_choice(recipe, pantry_items, profile)
+                speak(why)
+
             elif command == "add_shopping":
-                item = capture_ingredient("add_shop_step.wav", "What ingredient should I add to your shopping list?")
-                if item:
-                    add_to_shopping_list(item)
-                    speak(f"{item} added to your shopping list.")
+                items = capture_ingredient("add_shop_step.wav", "What ingredient should I add to your shopping list?")
+                if items:
+                    for item in items:
+                        add_to_shopping_list(item)
+                    speak(f"{', '.join(items)} added to your shopping list.")
                 else:
                     speak("I didn’t catch any item to add.")
             elif command == "unknown":

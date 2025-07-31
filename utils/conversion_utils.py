@@ -38,3 +38,25 @@ def sanitize_user_input(text):
     for phrase in ignore_phrases:
         text = text.replace(phrase, "")
     return text.strip()
+
+def explain_recipe_choice(recipe, pantry_items, profile):
+    name = recipe.get("name", "the recipe")
+    ingredients = set(i.lower() for i in recipe.get("ingredients", []))
+    tags = recipe.get("tags", [])
+    diet = profile.get("diet", "")
+    restrictions = set(r.lower() for r in profile.get("restrictions", []))
+    pantry = set(p.lower() for p in pantry_items)
+
+    matched = ingredients & pantry
+    tag_str = ", ".join(tags[:3]) if tags else "no special tags"
+
+    why = f"{name} is suggested because "
+
+    if matched:
+        why += f"it uses {', '.join(matched)} from your pantry, "
+    if diet:
+        why += f"it fits your diet: {diet}, "
+    if restrictions:
+        why += f"and avoids your restrictions: {', '.join(restrictions)}, "
+    why += f"with tags: {tag_str}."
+    return why

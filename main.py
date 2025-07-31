@@ -108,10 +108,11 @@ def main():
 	    elif command == "dynamic_recipe":
     		generate_dynamic_recipe(profile)
             elif command == "add_pantry":
-                item = capture_ingredient("add_pantry.wav", "What ingredient should I add to your pantry?")
-                if item:
-                    add_to_pantry(item)
-                    speak(f"{item} added to your pantry.")
+                items = capture_ingredient("add_pantry.wav", "What ingredients should I add to your pantry?")
+                if items:
+                    for item in items:
+                        add_to_pantry(item)
+                    speak(f"{', '.join(items)} added to your pantry.")
                 else:
                     speak("I didn’t catch any ingredient to add.")
             elif command == "show_pantry":
@@ -123,10 +124,11 @@ def main():
                     else:
                         speak("Your pantry is empty.")
             elif command == "add_shopping":
-                item = capture_ingredient("add_shop.wav", "What should I add to your shopping list?")
-                if item:
-                    add_to_shopping_list(item)
-                    speak(f"{item} added to your shopping list.")
+                items = capture_ingredient("add_shop.wav", "What should I add to your shopping list?")
+                if items:
+                    for item in items:
+                        add_to_shopping_list(item)
+                    speak(f"{', '.join(items)} added to your shopping list.")
                 else:
                     speak("I didn’t catch any item to add.")
             elif command == "clear_pantry":
