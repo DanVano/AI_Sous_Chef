@@ -24,9 +24,9 @@ class LocalAssistant:
         if not self.model:
             return self._mock_response(prompt)
 
-        prompt_template = f\"\"\"You are a helpful cooking assistant trained to give short, direct answers       about ingredients, substitutions, cooking steps, and timing.
+        prompt_template = f"""You are a helpful cooking assistant trained to give short, direct answers about ingredients, substitutions, cooking steps, and timing.
 
-        Here are some examples:
+Here are some examples:
 User: What can I cook with chicken and rice?
 Assistant: Try chicken fried rice, chicken soup, or chicken biryani.
 
@@ -37,7 +37,7 @@ User: How long does it take to cook pasta?
 Assistant: About 10 minutes, depending on the type.
 
 User: {prompt}
-Assistant:\"\"\"
+Assistant:"""
         output = self.model(prompt_template, max_tokens=150, stop=["User:", "Assistant:"])
         return output["choices"][0]["text"].strip()
 

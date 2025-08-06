@@ -5,7 +5,7 @@
 
 import openai
 import logging
-from openai.error import OpenAIError
+from openai import OpenAIError
 
 logging.basicConfig(level=logging.INFO)
 
