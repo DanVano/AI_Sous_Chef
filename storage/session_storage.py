@@ -1,7 +1,7 @@
  ## Temp session storage (for current recipe steps)
 
 ## Caches recipe steps and current progress during an active session.
-
+import os
 
 def save_session_transcription(transcription, session_id="current_session"):
     filename = os.path.join("storage", f"{session_id}_transcription.txt")

@@ -5,10 +5,17 @@ import pyaudio
 import numpy as np
 import wave
 
-WAKE_WORDS = ["hey chef"]
+with open("config/picovoice_key.txt") as f:
+    ACCESS_KEY = f.read().strip()
+    
+## WAKE_WORDS = ["hey chef", "Hello Chef", "Chef", "Hey Chef"]
+WAKE_WORDS = ["porcupine"]
 
 def listen_for_wake_word():
-    porcupine = pvporcupine.create(keywords=WAKE_WORDS)
+    porcupine = pvporcupine.create(
+        access_key=ACCESS_KEY,
+        keywords=WAKE_WORDS
+        )
     pa = pyaudio.PyAudio()
     audio_stream = pa.open(
         rate=porcupine.sample_rate,
@@ -32,27 +39,37 @@ def listen_for_wake_word():
         audio_stream.close()
         pa.terminate()
 
-def record_audio(filename="audio.mp3", record_seconds=6, rate=16000):
+def record_audio(filename="audio.wav", record_seconds=6, rate=16000):
     pa = pyaudio.PyAudio()
-    stream = pa.open(format=pyaudio.paInt16,
-                     channels=1,
-                     rate=rate,
-                     input=True,
-                     frames_per_buffer=1024)
-    print("Recording user prompt...")
-    frames = []
-    for _ in range(0, int(rate / 1024 * record_seconds)):
-        data = stream.read(1024, exception_on_overflow=False)
-        frames.append(data)
-    print("Finished recording.")
-    stream.stop_stream()
-    stream.close()
-    pa.terminate()
+    try:
+        stream = pa.open(format=pyaudio.paInt16,
+                         channels=1,
+                         rate=rate,
+                         input=True,
+                         frames_per_buffer=1024)
+        print(f"Recording user prompt for {record_seconds} seconds...")
+        frames = []
+        for _ in range(0, int(rate / 1024 * record_seconds)):
+            data = stream.read(1024, exception_on_overflow=False)
+            frames.append(data)
+        print("Finished recording.")
+        stream.stop_stream()
+        stream.close()
+        pa.terminate()
 
-    # Save as WAV for Whisper
-    wf = wave.open(filename, 'wb')
-    wf.setnchannels(1)
-    wf.setsampwidth(pa.get_sample_size(pyaudio.paInt16))
-    wf.setframerate(rate)
-    wf.writeframes(b''.join(frames))
-    wf.close()
+        # Save as WAV for Whisper
+        wf = wave.open(filename, 'wb')
+        wf.setnchannels(1)
+        wf.setsampwidth(pa.get_sample_size(pyaudio.paInt16))
+        wf.setframerate(rate)
+        wf.writeframes(b''.join(frames))
+        wf.close()
+        print(f"Saved file: {filename}")
+    except Exception as e:
+        print(f"Audio recording error: {e}")
+        try:
+            stream.stop_stream()
+            stream.close()
+        except:
+            pass
+        pa.terminate()

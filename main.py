@@ -53,7 +53,8 @@ def main():
 		for item, days in stale:
 			if days == 3:
 				speak(f"Reminder: {item.capitalize()} may start to spoil. Consider using it today.")
-		else:
+
+		if not first_run:
 			main_menu()
 
 		if listen_for_wake_word():

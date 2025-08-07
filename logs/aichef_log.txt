@@ -1,0 +1,22 @@
+[2025-08-07 00:32:22] INPUT: Main menu command: 
+[2025-08-07 00:33:14] INPUT: Main menu command: 
+[2025-08-07 00:39:29] INPUT: Main menu command: 
+[2025-08-07 00:39:30] ERROR: Selection error at main menu
+[2025-08-07 00:39:48] INPUT: Main menu command: 
+[2025-08-07 00:39:48] ERROR: Selection error at main menu
+[2025-08-07 00:41:31] INPUT: Main menu command: 
+[2025-08-07 00:41:31] ERROR: Selection error at main menu
+[2025-08-07 00:41:43] INPUT: Main menu command: 
+[2025-08-07 00:41:43] ERROR: Selection error at main menu
+[2025-08-07 00:47:39] INPUT: Main menu command: 
+[2025-08-07 00:47:39] ERROR: Selection error at main menu
+[2025-08-07 00:47:51] INPUT: Main menu command: 
+[2025-08-07 00:47:51] ERROR: Selection error at main menu
+[2025-08-07 00:53:22] INPUT: Main menu command: 
+[2025-08-07 00:53:22] ERROR: Selection error at main menu
+[2025-08-07 00:53:39] INPUT: Main menu command: 
+[2025-08-07 00:53:39] ERROR: Selection error at main menu
+[2025-08-07 00:55:46] INPUT: Main menu command: 
+[2025-08-07 00:55:47] ERROR: Selection error at main menu
+[2025-08-07 00:56:02] INPUT: Main menu command: 
+[2025-08-07 00:56:02] ERROR: Selection error at main menu

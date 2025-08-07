@@ -6,7 +6,7 @@ from voice.tts import speak
 from voice.wake_word import record_audio
 from voice.whisper_stt import transcribe_audio
 
-def capture_command(filename="cmd.wav", prompt="Say your command", max_retries=2, record_seconds=3):
+def capture_command(filename="cmd.wav", prompt="Say your command", max_retries=2, record_seconds=5):
     """
     Reusable voice input handler with retries, feedback, and fallback.
     Returns lowercased transcription or empty string.
