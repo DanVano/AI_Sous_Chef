@@ -1,5 +1,6 @@
 # wake_word.py
 
+import os
 import pvporcupine
 import pyaudio
 import numpy as np
@@ -12,10 +13,7 @@ with open("config/picovoice_key.txt") as f:
 WAKE_WORDS = ["porcupine"]
 
 def listen_for_wake_word():
-    porcupine = pvporcupine.create(
-        access_key=ACCESS_KEY,
-        keywords=WAKE_WORDS
-        )
+    porcupine = pvporcupine.create(access_key=ACCESS_KEY, keywords=WAKE_WORDS)
     pa = pyaudio.PyAudio()
     audio_stream = pa.open(
         rate=porcupine.sample_rate,
@@ -32,14 +30,22 @@ def listen_for_wake_word():
             keyword_index = porcupine.process(pcm_np)
             if keyword_index >= 0:
                 print("Wake word detected!")
-                # Optionally, play a sound or say "Ready"
                 return True
     finally:
         audio_stream.stop_stream()
         audio_stream.close()
         pa.terminate()
 
-def record_audio(filename="audio.wav", record_seconds=6, rate=16000):
+def record_audio(filename="audio.wav", record_seconds=6, rate=16000, folder="recordings"):
+    """
+    Records mono PCM and saves as WAV. Returns absolute path to the file.
+    Creates the folder if needed and prints file size for verification.
+    """
+    os.makedirs(folder, exist_ok=True)
+    if not filename.lower().endswith(".wav"):
+        filename += ".wav"
+    path = os.path.abspath(os.path.join(folder, filename))
+
     pa = pyaudio.PyAudio()
     try:
         stream = pa.open(format=pyaudio.paInt16,
@@ -53,23 +59,24 @@ def record_audio(filename="audio.wav", record_seconds=6, rate=16000):
             data = stream.read(1024, exception_on_overflow=False)
             frames.append(data)
         print("Finished recording.")
-        stream.stop_stream()
-        stream.close()
-        pa.terminate()
-
-        # Save as WAV for Whisper
-        wf = wave.open(filename, 'wb')
-        wf.setnchannels(1)
-        wf.setsampwidth(pa.get_sample_size(pyaudio.paInt16))
-        wf.setframerate(rate)
-        wf.writeframes(b''.join(frames))
-        wf.close()
-        print(f"Saved file: {filename}")
-    except Exception as e:
-        print(f"Audio recording error: {e}")
+    finally:
         try:
             stream.stop_stream()
             stream.close()
-        except:
+        except Exception:
             pass
         pa.terminate()
+
+    try:
+        with wave.open(path, 'wb') as wf:
+            wf.setnchannels(1)
+            wf.setsampwidth(pyaudio.PyAudio().get_sample_size(pyaudio.paInt16))
+            wf.setframerate(rate)
+            wf.writeframes(b''.join(frames))
+        size = os.path.getsize(path)
+        print(f"Saved file: {path} ({size} bytes)")
+    except Exception as e:
+        print(f"Error saving WAV to {path}: {e}")
+        return ""
+
+    return path

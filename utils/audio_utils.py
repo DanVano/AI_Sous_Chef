@@ -6,107 +6,107 @@ from voice.tts import speak
 from voice.wake_word import record_audio
 from voice.whisper_stt import transcribe_audio
 
-def capture_command(filename="cmd.wav", prompt="Say your command", max_retries=2, record_seconds=5):
+# Cooldown memory
+_last_cmd_time = 0.0
+_last_cmd_text = ""
+
+def debounce_command(cmd: str, cooldown: float = 1.0) -> bool:
     """
-    Reusable voice input handler with retries, feedback, and fallback.
-    Returns lowercased transcription or empty string.
+    Returns False if the same command was received less than `cooldown` seconds ago.
     """
     global _last_cmd_time, _last_cmd_text
-    try:
-        _last_cmd_time
-        _last_cmd_text
-    except NameError:
-        _last_cmd_time = 0
-        _last_cmd_text = ""
+    now = time.time()
+    if cmd and cmd == _last_cmd_text and (now - _last_cmd_time) < cooldown:
+        return False
+    _last_cmd_text = cmd
+    _last_cmd_time = now
+    return True
 
+def capture_command(filename: str = "cmd.wav",
+                    prompt: str = "Say your command",
+                    max_retries: int = 2,
+                    record_seconds: int = 6) -> str:
+    """
+    Voice capture with retries, WAV saving, and Whisper transcription.
+    Returns lowercased text ('' on failure).
+    """
     for attempt in range(max_retries):
         speak(prompt)
-        record_audio(filename, record_seconds=record_seconds)
-        result = transcribe_audio(filename).strip().lower()
+        path = record_audio(filename, record_seconds=record_seconds)  # returns absolute path or ''
+        if not path:
+            speak("Recording failed. Let’s try again.")
+            continue
 
-        now = time.time()
-        if result and (result != _last_cmd_text or now - _last_cmd_time > 1):
-            _last_cmd_time = now
-            _last_cmd_text = result
-            return result
-        elif not result:
+        text = transcribe_audio(path).strip().lower()
+        if not text:
             speak("I didn’t catch that. Try again.")
-        else:
+            continue
+
+        # cooldown check (prevent accidental double-triggers)
+        if not debounce_command(text, cooldown=1.0):
             speak("Duplicate command detected. Ignoring.")
+            continue
+
+        return text
 
     speak("Still didn’t catch anything. Returning to main flow.")
     return ""
 
-def capture_ingredient(filename="ingredient.wav", prompt="Say ingredients to add", max_retries=2, record_seconds=3):
+def _split_multi(text: str) -> list[str]:
     """
-    Capture one or more ingredients from the user. Supports multiple, comma/and separated.
-    Deduplicates and cleans input.
-    Returns a list of clean ingredient names.
+    Normalize separators ('and' → ',', remove filler), return list.
+    """
+    text = text.replace(" and ", ", ")
+    parts = [sanitize_user_input(x) for x in text.split(",")]
+    return [p for p in parts if p]
+
+def capture_ingredient(filename: str = "ingredient.wav",
+                       prompt: str = "Say ingredients to add",
+                       max_retries: int = 2,
+                       record_seconds: int = 4) -> list[str]:
+    """
+    Capture one or more ingredients. Supports comma/and-separated input.
+    - Cleans filler words (sanitize_user_input)
+    - Fuzzy matches known pantry items
+    - Deduplicates results (case-insensitive)
+    Returns a list (possibly length 1). Empty list on failure.
     """
     for _ in range(max_retries):
         raw = capture_command(filename, prompt, record_seconds=record_seconds)
         if not raw:
             continue
 
-        # Standardize delimiters
-        raw = raw.replace(" and ", ", ")
-        items = [sanitize_user_input(x) for x in raw.split(",") if x.strip()]
-        cleaned = []
-        for item in items:
-            match = match_ingredient(item)
-            cleaned.append(match if match else item)
+        # Parse possible multiple ingredients
+        items = _split_multi(raw)
 
-        # Remove blanks and deduplicate
+        mapped = []
+        for item in items:
+            matched = match_ingredient(item)
+            mapped.append(matched if matched else item)
+
+        # Deduplicate (case-insensitive)
+        seen = set()
         deduped = []
-        for i in cleaned:
-            if i and i not in deduped:
-                deduped.append(i)
+        for m in mapped:
+            key = m.lower()
+            if key not in seen:
+                deduped.append(m)
+                seen.add(key)
+
         if deduped:
             return deduped
 
     return []
 
-_last_cmd_time = 0
-_last_cmd_text = ""
-
-def debounce_command(cmd, cooldown=1.0):
-    global _last_cmd_time, _last_cmd_text
-    now = time.time()
-
-    if cmd == _last_cmd_text and (now - _last_cmd_time) < cooldown:
-        return False
-
-    _last_cmd_time = now
-    _last_cmd_text = cmd
-    return True
-
-def capture_ingredient(filename="ingredient.wav", prompt="Say an ingredient to add", max_retries=2, record_seconds=3):
+def confirm_yes_no(prompt: str = "Do you want to proceed?", retries: int = 2) -> bool:
     """
-    Specialized voice handler for capturing ingredient names.
-    Includes voice retries, formatting, and fuzzy matching.
+    Simple voice yes/no confirm using capture_command.
     """
-    for _ in range(max_retries):
-        raw = capture_command(filename, prompt, record_seconds=record_seconds)
-
-        if not raw:
-            continue
-
-        # Remove common prefixes like "add", "to pantry", etc.
-        for word in ["add", "to pantry", "to list", "please add"]:
-            raw = sanitize_user_input(raw)
-
-        cleaned = match_ingredient(raw)
-        return cleaned if cleaned else raw  # fallback to raw if no match
-
-    return ""
-
-def confirm_yes_no(prompt="Do you want to proceed?", retries=2):
     for _ in range(retries):
         response = capture_command("confirm.wav", prompt)
-        if any(word in response for word in ["yes", "sure", "yeah", "go ahead"]):
+        if any(word in response for word in ["yes", "sure", "yeah", "go ahead", "confirm"]):
             return True
-        elif any(word in response for word in ["no", "not now", "cancel"]):
+        if any(word in response for word in ["no", "not now", "cancel", "stop"]):
             return False
-        else:
-            speak("Please say yes or no.")
+        speak("Please say yes or no.")
     return False

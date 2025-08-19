@@ -1,18 +1,18 @@
-## Handles chat completions, recipe recommendations.
-## Handles all OpenAI API interactions
-
-
-
-import openai
+import os
 import logging
-from openai import OpenAIError
+import openai
+from openai.error import OpenAIError
 
 logging.basicConfig(level=logging.INFO)
 
-def get_chatgpt_response(question):
+def get_chatgpt_response(question: str) -> str:
     key_path = os.path.join("config", "key.txt")
-    with open(key_path, "r") as file:
-        openai.api_key = file.read().strip()
+    try:
+        with open(key_path, "r", encoding="utf-8") as file:
+            openai.api_key = file.read().strip()
+    except Exception as e:
+        logging.error("Could not read OpenAI key at %s: %s", key_path, e)
+        return "API key not found."
 
     messages = [
         {"role": "system", "content": "You are a helpful AI assistant."},
@@ -20,15 +20,16 @@ def get_chatgpt_response(question):
     ]
 
     try:
-        response = openai.ChatCompletion.create(
+        resp = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=messages,
             temperature=0.7,
             max_tokens=200
         )
-        logging.info("Question: %s", question)
-        logging.info("Response: %s", response)
-        return response.choices[0].message["content"].strip()
+        text = resp.choices[0].message["content"].strip()
+        logging.info("Q: %s", question)
+        logging.info("A: %s", text)
+        return text
     except OpenAIError as e:
         logging.error("OpenAI API error: %s", str(e))
         return f"OpenAI API error: {str(e)}"

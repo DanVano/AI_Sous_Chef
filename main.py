@@ -1,3 +1,5 @@
+
+
 from ai.intent_parser import parse_intent
 from ai.local_assistant import LocalAssistant
 from ai.chatgpt_api import get_chatgpt_response
@@ -49,12 +51,12 @@ def main():
 			speak("Welcome to AI Chef!")
 			main_menu()
 			first_run = False
-		fresh, stale = get_fresh_items()
-		for item, days in stale:
-			if days == 3:
-				speak(f"Reminder: {item.capitalize()} may start to spoil. Consider using it today.")
-
-		if not first_run:
+		else:
+			# freshness alerts
+			fresh, stale = get_fresh_items()
+			for item, days in stale:
+				if days == 3:
+					speak(f"Reminder: {item.capitalize()} may start to spoil. Consider using it today.")
 			main_menu()
 
 		if listen_for_wake_word():

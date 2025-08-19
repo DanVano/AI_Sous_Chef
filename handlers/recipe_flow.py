@@ -1,12 +1,14 @@
-from ai.chatgpt_api import get_chatgpt_response 
+from ai.chatgpt_api import get_chatgpt_response
 from ai.intent_parser import parse_intent
 from ai.local_assistant import LocalAssistant
 from handlers.side_dish_recommender import suggest_side_dishes
+from recipes.recipe_manager import filter_recipes, get_recipe_by_name, substitute_ingredient
 from storage.pantry import get_fresh_items
-from storage.persistent_storage import save_favorite, log_recipe_usage, load_user_profile
+from storage.persistent_storage import save_favorite, save_last_recipe, log_recipe_usage, load_user_profile
 from storage.shopping_list import add_to_shopping_list
 from utils.audio_utils import capture_command, capture_ingredient, debounce_command, confirm_yes_no
 from utils.conversion_utils import extract_rating, summarize_recipe, explain_recipe_choice, is_unclear
+from utils.timer import set_timer, extract_timer_seconds
 from utils.logger import log_event
 from voice.tts import speak
 from voice.wake_word import record_audio
@@ -15,7 +17,7 @@ from voice.whisper_stt import transcribe_audio
 local_ai = LocalAssistant()
 
 def find_step_by_keyword(steps, user_text):
-    lowered = user_text.lower()
+    lowered = (user_text or "").lower()
     for i, step in enumerate(steps):
         if any(word in step.lower() for word in lowered.split()):
             return i
@@ -30,44 +32,45 @@ def handle_ai_fallback(prompt):
     else:
         log_event("ai", f"LocalAssistant handled: {prompt} -> {response}")
     speak(response)
+    return response
 
 def handle_find_recipe(profile):
-    ingredients_list = listen_for_ingredients()
+    ingredients_list = capture_ingredient("find_recipe.wav", "What ingredients do you have?")
+    if not ingredients_list:
+        speak("I didn't catch any ingredients. Please try again.")
+        return
+
     options = filter_recipes(ingredients_list, profile)
     if not options:
         speak("Sorry, I couldn't find any recipes with those ingredients.")
         return
-    fresh, stale = get_fresh_items()
-    for item, days in stale:
-        if days == 3:
-            speak(f"{item.capitalize()} may start to spoil. Recommended to cook today.")
+
     speak("Here are some recipes you could try:")
-    for idx, recipe in enumerate(options, 1):
+    for idx, recipe in enumerate(options[:3], 1):
         speak(f"{idx}. {recipe['name']}")
-    print("Options: ")
-    for idx, recipe in enumerate(options, 1):
-        print(f"{idx}: {recipe['name']}")
-    speak("Which recipe do you want to start? Please say the name or number.")
-    audio_path = "recipe_choice.wav"
-    record_audio(audio_path, record_seconds=4)
-    selection = transcribe_audio(audio_path)
-    log_event("input", f"Recipe choice: {selection}")
+        print(f"{idx}. {recipe['name']}")
+
+    speak("Which recipe do you want to start? Say the number or the name.")
+    choice_text = capture_command("recipe_choice.wav", "Say the number or the name of the recipe.", record_seconds=4)
+
     chosen = None
-    try:
-        idx = int(selection)
-        if 1 <= idx <= len(options):
+    if choice_text and choice_text.strip().isdigit():
+        idx = int(choice_text.strip())
+        if 1 <= idx <= len(options[:3]):
             chosen = options[idx - 1]
-    except ValueError:
-        for recipe in options:
-            if selection.lower() in recipe["name"].lower():
-                chosen = recipe
+    if not chosen and choice_text:
+        lt = choice_text.lower()
+        for r in options:
+            if lt in r["name"].lower():
+                chosen = r
                 break
+
     if chosen:
         speak(f"Great! Let's start {chosen['name']}. Say 'next step' to begin.")
         save_last_recipe(chosen)
         session_recipe_navigation(chosen)
     else:
-        speak("Recipe selection error.")
+        speak("I didn't understand your selection. Let's try again from the main menu.")
 
 def handle_power_search(profile):
     speak("Tell me the main ingredients you have. Please say them separated by and or commas.")
@@ -78,6 +81,7 @@ def handle_power_search(profile):
     if not user_text or len(user_text.split()) < 2:
         speak("I didn't catch enough ingredients. Please try again.")
         return
+
     user_text = user_text.replace(" and ", ", ")
     ingredients_list = [i.strip() for i in user_text.split(",") if i.strip()]
     options = filter_recipes(ingredients_list, profile)
@@ -92,13 +96,14 @@ def handle_power_search(profile):
             "Return only the recipe name and a one-line description for each, in this format: "
             "1. Recipe Name: Description."
         )
-        chatgpt_results = handle_ai_fallback(gpt_prompt)
+        chatgpt_results = handle_ai_fallback(gpt_prompt) or ""
         log_event("ai", f"ChatGPT power search: {gpt_prompt}\nResponse: {chatgpt_results}")
         speak("Here are some recipes I found:")
         for line in chatgpt_results.split("\n"):
             if line.strip():
                 speak(line.strip())
         return
+
     fresh, stale = get_fresh_items()
     for item, days in stale:
         if days == 3:
@@ -107,13 +112,6 @@ def handle_power_search(profile):
     for idx, recipe in enumerate(options[:3], 1):
         speak(f"{idx}. {recipe['name']}")
         log_event("output", f"Local recipe option: {recipe['name']}")
-
-def find_step_by_keyword(steps, user_text):
-    lowered = user_text.lower()
-    for i, step in enumerate(steps):
-        if any(word in step.lower() for word in lowered.split()):
-            return i
-    return None
 
 def session_recipe_navigation(recipe, resume_step=0):
     steps = recipe.get("steps", [])
@@ -162,9 +160,8 @@ def session_recipe_navigation(recipe, resume_step=0):
             elif command == "pause":
                 speak("Paused. Say resume when ready.")
                 while True:
-                    record_audio("resume_cmd.wav", record_seconds=2)
-                    resume_cmd = transcribe_audio("resume_cmd.wav").lower()
-                    if "resume" in resume_cmd or "continue" in resume_cmd:
+                    pr = capture_command("resume_cmd.wav", "Say resume or continue.", record_seconds=2)
+                    if "resume" in pr or "continue" in pr:
                         speak("Resuming.")
                         break
             elif command == "rate":
@@ -199,7 +196,7 @@ def session_recipe_navigation(recipe, resume_step=0):
                 for i, s in enumerate(steps, 1):
                     speak(f"Step {i}: {s}")
             elif command == "suggest_side":
-                suggest_side_dishes(recipe)     
+                suggest_side_dishes(recipe)
             elif command == "recap_recipe":
                 speak(summarize_recipe(recipe))
             elif command == "describe_step":
@@ -219,9 +216,8 @@ def session_recipe_navigation(recipe, resume_step=0):
                 profile = load_user_profile()
                 why = explain_recipe_choice(recipe, pantry_items, profile)
                 speak(why)
-
             elif command == "add_shopping":
-                items = capture_ingredient("add_shop_step.wav", "What ingredient should I add to your shopping list?")
+                items = capture_ingredient("add_shop_step.wav", "What ingredients should I add to your shopping list?")
                 if items:
                     for item in items:
                         add_to_shopping_list(item)
@@ -229,7 +225,7 @@ def session_recipe_navigation(recipe, resume_step=0):
                 else:
                     speak("I didn’t catch any item to add.")
             elif command == "unknown":
-                # Handle jump to step by number or keyword
+                # jump by number
                 if "step" in step_cmd:
                     for word in step_cmd.split():
                         if word.isdigit():
@@ -242,6 +238,7 @@ def session_recipe_navigation(recipe, resume_step=0):
                         speak("Please say a step number like 'step 2'.")
                         continue
                     break
+                # jump by keyword
                 elif any(x in step_cmd for x in ["go to", "jump to", "take me to"]):
                     match = find_step_by_keyword(steps, step_cmd)
                     if match is not None:
@@ -256,13 +253,11 @@ def session_recipe_navigation(recipe, resume_step=0):
                 speak("Sorry, I didn’t catch that. Say next, repeat, back, pause, or step number.")
 
     log_recipe_usage(recipe.get("name", "unknown"), step_events=len(steps), repeated_steps=repeats)
-    # Post-recipe save prompt
     if confirm_yes_no("Would you like to save this recipe?"):
         save_favorite(recipe)
         speak("Recipe saved.")
     else:
         speak("Okay, not saving the recipe.")
-
 
 def handle_start_recipe():
     speak("What recipe do you want to cook?")
@@ -277,4 +272,3 @@ def handle_start_recipe():
         session_recipe_navigation(recipe)
     else:
         speak("Recipe not found.")
-
